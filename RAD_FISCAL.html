@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MCR | VISTORIA FISCAL ELITE</title>
+    <meta name="theme-color" content="#059669">
+    <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone@7.23.5/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com/3.4.1"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/idb-keyval@6.2.1/dist/umd.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary:#059669; --primary-dark:#064e3b; --accent:#dc2626; --bg-soft:#ecfdf5; --grp-qualidade:#059669; --grp-seguranca:#dc2626; --grp-gestao:#f59e0b; --grp-controle:#10b981; }
+        body { background:#f8fafc; font-family:'Inter',sans-serif; -webkit-tap-highlight-color:transparent; color:#1e293b; }
+        .radpoda-card { background:white; border-radius:2rem; box-shadow:0 10px 25px -5px rgba(0,0,0,.05),0 8px 10px -6px rgba(0,0,0,.05); border:1px solid #f1f5f9; }
+        .btn-active:active { transform:scale(0.96); }
+        .fade-in { animation:fadeIn .4s cubic-bezier(.16,1,.3,1); }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+        .no-scrollbar::-webkit-scrollbar { display:none; }
+        .select-btn { border:2px solid #e2e8f0; transition:all .2s; }
+        .select-btn.active { border-color:var(--primary); background:var(--bg-soft); color:var(--primary-dark); box-shadow:0 4px 12px rgba(0,51,153,.15); }
+        .elite-header { background:linear-gradient(135deg,var(--primary-dark) 0%,var(--primary) 100%); color:white; padding:2.5rem 1.5rem; border-bottom-left-radius:3rem; border-bottom-right-radius:3rem; box-shadow:0 20px 40px -10px rgba(0,51,153,.4); margin-bottom:2.5rem; position:relative; overflow:hidden; border-bottom:4px solid rgba(255,255,255,.1); }
+        .pulse-severe { animation:pulse-severe 2s infinite; }
+        @keyframes pulse-severe { 0%{box-shadow:0 0 0 0 rgba(225,29,72,.4)} 70%{box-shadow:0 0 0 10px rgba(225,29,72,0)} 100%{box-shadow:0 0 0 0 rgba(225,29,72,0)} }
+        input[type=time],input[type=date] { -webkit-appearance:none; appearance:none; }
+    </style>
+</head>
+<body class="no-scrollbar bg-slate-50">
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+const FISCAIS_AUTH = { 'DANIELA FERNANDA DEWES DE FREITAS':'daniela123', 'SANDRA DE OLIVEIRA':'sandra123', 'AIRTON ANTÔNIO BOHNEN':'airton123' };
+const EMAIL_DESTINO = 'danieladefreitasmcr@gmail.com';
+const HMAC_KEY = 'MCR_RAD_THYEGO_INTEGRITY_2025';
+
+const GLOSA_RULES = [
+    {id:99,group:'CONFORMIDADE',glosa:'0.00%',cat:'Vistoria Conforme',desc:'Ateste in loco sem ocorrência de glosa.',howTo:'Registre o local com foto, comprovando que a execução está de acordo com as diretrizes e regras de segurança para respaldo ao TCE.'},
+
+    {id:1,group:'QUALIDADE',glosa:'0.50%',cat:'Qualidade Técnica',desc:'Execução em desacordo com normas ou OS.',howTo:'Verifique o padrão da poda. Colete fotos mostrando a falha técnica ou desvio da OS.'},
+    {id:2,group:'QUALIDADE',glosa:'0.50%',cat:'Prazos e Limpeza',desc:'Atraso na conclusão ou limpeza (>24h).',howTo:'Registre resíduos no local após 24h. Tire foto do logradouro com galhos acumulados.'},
+    {id:3,group:'QUALIDADE',glosa:'0.50%',cat:'Impacto Público',desc:'Reclamações não resolvidas no prazo.',howTo:'Anote o protocolo da reclamação. Fotografe a situação não resolvida.'},
+    {id:4,group:'QUALIDADE',glosa:'8.00%',cat:'Inexecução Gravíssima',desc:'Recusa ou abandono de serviço.',howTo:'Documente local vazio ou paralisação injustificada. Fotografe sem equipe no horário.'},
+    {id:5,group:'QUALIDADE',glosa:'8.00%',cat:'Dano Ambiental',desc:'Supressão sem autorização prévia.',howTo:'Cruze com licenciamento. Fotografe o tronco e ausência de placa de supressão.'},
+    {id:6,group:'QUALIDADE',glosa:'0.10%',cat:'Capacidade Insuficiente',desc:'Falta de equipe ou equipamentos.',howTo:'Conte auxiliares e motosserristas em campo. Compare com o mínimo do edital. Fotografe a equipe completa.'},
+    {id:7,group:'SEGURANÇA',glosa:'8.00%',cat:'Acidente Gravíssimo',desc:'Acidente com afastamento ou danos.',howTo:'Registre imediatamente. Fotos detalhadas de danos a terceiros ou lesão física.'},
+    {id:8,group:'SEGURANÇA',glosa:'2.00%',cat:'Uso de EPIs',desc:'Falta ou uso inadequado de proteção.',howTo:'Identifique trabalhadores sem capacete, luvas, botas ou cinto. Foque na infração.'},
+    {id:9,group:'SEGURANÇA',glosa:'3.00%',cat:'Sinalização e EPCs',desc:'Falha no isolamento coletivo.',howTo:'Verifique ausência de cones, placas ou fitas. Fotografe a rua sem isolamento.'},
+    {id:10,group:'SEGURANÇA',glosa:'1.00%',cat:'Falta de DDS',desc:'Início sem registro do DDS.',howTo:'Cobre o registro do Diálogo Diário de Segurança. Se operando sem DDS assinado, aplique.'},
+    {id:11,group:'GESTÃO',glosa:'0.50%',cat:'Registro Diário',desc:'Atraso no envio do formulário online.',howTo:'Verifique se dados do dia anterior foram transmitidos.'},
+    {id:12,group:'GESTÃO',glosa:'1.50%',cat:'Relatório Mensal',desc:'Atraso ou RAM incompleto.',howTo:'Considere a data limite. Aplique se houver falta de fotos ou dados incompletos.'},
+    {id:13,group:'GESTÃO',glosa:'8.00%',cat:'Fraude Contratual',desc:'Manipulação dolosa de registros.',howTo:'Identifique fotos duplicadas, GPS falsificado ou protocolos repetidos. Documente a evidência.'},
+    {id:14,group:'GESTÃO',glosa:'1.00%',cat:'Gestão Administrativa',desc:'Não atendimento a pedidos formais.',howTo:'Liste o ofício não respondido no prazo de 48h.'},
+    {id:15,group:'CONTROLE',glosa:'0.50%',cat:'GPS Inoperante',desc:'Veículo em serviço sem rastreamento.',howTo:'Confira rastreio. Tire print mostrando o veículo offline.'},
+    {id:16,group:'CONTROLE',glosa:'1.50%',cat:'Licenças e NRs',desc:'Operadores ou máquinas sem licença.',howTo:'Solicite NR-35/NR-10 ou LOP da motosserra. Fotografe documento vencido.'},
+    {id:17,group:'CONTROLE',glosa:'8.00%',cat:'Discrepância Auditada',desc:'Divergência entre RAD e Auditoria.',howTo:'Use quando o relatório declarar algo inexistente no local. Documente a evidência.'}
+];
+
+const App = () => {
+    const [view, setView] = useState('fiscal');
+    const [fiscal, setFiscal] = useState('');
+    const [loginSenha, setLoginSenha] = useState('');
+    const [loginSelect, setLoginSelect] = useState('');
+    const [selectedRule, setSelectedRule] = useState(null);
+    const [endereco, setEndereco] = useState('');
+    const [enderecoLoading, setEnderecoLoading] = useState(false);
+    const [relato, setRelato] = useState('');
+    const [fotos, setFotos] = useState([null,null,null]);
+    const [gps, setGps] = useState({lat:null,lng:null,status:'searching'});
+    const [loading, setLoading] = useState(false);
+    const [history, setHistory] = useState([]);
+
+    // Data/hora do início da ocorrência — auto EXIF ou manual
+    const nowDate = () => new Date().toISOString().split('T')[0];
+    const nowTime = () => new Date().toTimeString().slice(0,5);
+    const [visitaData, setVisitaData] = useState(nowDate);
+    const [visitaHora, setVisitaHora] = useState(nowTime);
+    // Período de permanência da glosa (definido pelo fiscal)
+    const [glosaFimData, setGlosaFimData] = useState(nowDate);
+    const [glosaFimHora, setGlosaFimHora] = useState('18:00');
+    // Unidade/OS da glosa
+    const [glosaOS, setGlosaOS]     = useState('');
+    const [glosaUnid, setGlosaUnid] = useState('');
+
+    const today = new Date().toISOString().split('T')[0];
+    const [exportDateFrom, setExportDateFrom] = useState(today);
+    const [exportDateTo,   setExportDateTo]   = useState(today);
+    const [exportTimeFrom, setExportTimeFrom] = useState('00:00');
+    const [exportTimeTo,   setExportTimeTo]   = useState('23:59');
+
+    const requestGps = () => {
+        setGps({lat:null, lng:null, status:'searching'});
+        if (!navigator.geolocation) {
+            alert('Erro: Seu navegador não suporta GPS.');
+            setGps(g => ({...g, status:'error'}));
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(
+            p => setGps({lat:p.coords.latitude.toFixed(6), lng:p.coords.longitude.toFixed(6), status:'ok'}),
+            err => {
+                let msg = 'Erro desconhecido.';
+                if(err.code === 1) msg = 'Permissão Negada. No celular: abra as Configurações do Chrome/Safari > Permissões de Site > Localização > Permita para este arquivo.';
+                if(err.code === 2) msg = 'Sinal de GPS ausente. Vá para uma rua aberta e tente novamente.';
+                if(err.code === 3) msg = 'Tempo esgotado. Verifique se a Localização está ativa nas configurações do celular e tente novamente.';
+                alert('FALHA NA COLETA DE COORDENADAS TCE:\n' + msg);
+                setGps(g => ({...g, status:'error'}));
+            },
+            { enableHighAccuracy:true, timeout:15000, maximumAge:0 }
+        );
+    };
+
+    useEffect(() => {
+        requestGps();
+        loadHistory();
+    }, []);
+
+    const loadHistory = async () => {
+        const hist = await idbKeyval.get('vistorias_history') || [];
+        setHistory(hist.sort((a,b) => new Date(b.timestamp)-new Date(a.timestamp)).slice(0,30));
+    };
+
+    // ── Lê EXIF de arquivo de imagem manualmente (sem lib externa) ────────
+    const readExif = (file) => new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onload = ev => {
+            try {
+                const view = new DataView(ev.target.result);
+                if (view.getUint16(0) !== 0xFFD8) { resolve({}); return; }
+                let offset = 2;
+                while (offset < view.byteLength) {
+                    const marker = view.getUint16(offset);
+                    const len = view.getUint16(offset + 2);
+                    if (marker === 0xFFE1) { // APP1 - EXIF
+                        const exifStr = String.fromCharCode(...new Uint8Array(ev.target.result, offset + 4, 6));
+                        if (!exifStr.startsWith('Exif')) { resolve({}); return; }
+                        // Tenta extrair data do bloco EXIF de forma simples
+                        const raw = new Uint8Array(ev.target.result, offset + 10, len - 8);
+                        const str = String.fromCharCode(...raw);
+                        const dtMatch = str.match(/(\d{4}):(\d{2}):(\d{2}) (\d{2}):(\d{2}):(\d{2})/);
+                        if (dtMatch) {
+                            resolve({ dateStr: `${dtMatch[1]}-${dtMatch[2]}-${dtMatch[3]}`, timeStr: `${dtMatch[4]}:${dtMatch[5]}` });
+                        } else { resolve({}); }
+                        return;
+                    }
+                    offset += 2 + len;
+                }
+            } catch(e) {}
+            resolve({});
+        };
+        reader.readAsArrayBuffer(file.slice(0, 128 * 1024)); // lê só os primeiros 128kb
+    });
+
+    // ── Reverse geocoding offline-friendly (OpenStreetMap Nominatim) ──────
+    const reverseGeocode = async (lat, lng) => {
+        try {
+            const resp = await fetch(
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`,
+                { headers: { 'Accept-Language': 'pt-BR' } }
+            );
+            const data = await resp.json();
+            const a = data.address || {};
+            const parts = [a.road, a.house_number, a.suburb || a.neighbourhood, a.city || a.town || a.village];
+            return parts.filter(Boolean).join(', ').toUpperCase();
+        } catch(e) { return ''; }
+    };
+
+    // ── Processa foto: EXIF → data/hora | GPS app → geocoding → endereço ─
+    const processPhoto = async (file, index) => {
+        if (!file) return;
+
+        // 1. Tenta ler data/hora do EXIF (funciona para fotos da câmera)
+        if (index === 0) {
+            const exif = await readExif(file);
+            if (exif.dateStr) {
+                setVisitaData(exif.dateStr);
+                if (exif.timeStr) setVisitaHora(exif.timeStr);
+            }
+            // 2. Auto-preenche endereço via GPS do dispositivo (se disponível e campo vazio)
+            if (gps.lat && !endereco.trim()) {
+                setEnderecoLoading(true);
+                const addr = await reverseGeocode(gps.lat, gps.lng);
+                if (addr) setEndereco(addr);
+                setEnderecoLoading(false);
+            }
+        }
+
+        // 3. Renderiza no canvas com watermark
+        const reader = new FileReader();
+        reader.onload = ev => {
+            const img = new Image();
+            img.onload = () => {
+                const maxSize = 1280;
+                let w = img.width, h = img.height;
+                if (w > h && w > maxSize) { h = Math.round(h*maxSize/w); w = maxSize; }
+                else if (h > maxSize) { w = Math.round(w*maxSize/h); h = maxSize; }
+                const canvas = document.createElement('canvas');
+                canvas.width = w; canvas.height = h;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, w, h);
+                const font = Math.max(12, Math.floor(w/42));
+                ctx.font = `bold ${font}px monospace`;
+                ctx.fillStyle = 'white'; ctx.shadowColor = 'black'; ctx.shadowBlur = 7;
+                const dataHora = `${visitaData} ${visitaHora}`;
+                const gpsStr  = gps.lat ? `${gps.lat}, ${gps.lng}` : 'GPS N/D';
+                ctx.fillText(`MCR FISCAL | ${dataHora} | ${gpsStr}`, 14, h - 16);
+                const finalImg = canvas.toDataURL('image/jpeg', 0.82);
+                setFotos(prev => { const f=[...prev]; f[index]=finalImg; return f; });
+            };
+            img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const sendVistoria = async () => {
+        if (fotos.filter(Boolean).length === 0) { alert('Anexe pelo menos 1 foto.'); return; }
+        if (!relato.trim() || !endereco.trim()) { alert('Preencha o relato e o endereço.'); return; }
+        // GPS OBRIGATÓRIO — evita duplicação e permite cruzamento no Gestor
+        if (!gps.lat || !gps.lng) {
+            alert('⚠️ GPS OBRIGATÓRIO\n\nO registro não pode ser salvo sem coordenadas GPS.\nAguarde o GPS ser encontrado ou ative a localização do dispositivo.');
+            return;
+        }
+        if (!window.confirm('Confirmar o envio desta glosa fiscal?')) return;
+        setLoading(true);
+        try {
+            const tsInicio = new Date(`${visitaData}T${visitaHora}:00`);
+            const tsFim    = new Date(`${glosaFimData}T${glosaFimHora}:00`);
+            const entry = {
+                fiscal, rule_id:selectedRule.id, categoria:selectedRule.cat,
+                observacao:relato.toUpperCase(), endereco:endereco.toUpperCase(),
+                gps:`${gps.lat},${gps.lng}`,
+                lat: parseFloat(gps.lat), lng: parseFloat(gps.lng),
+                fotosBase64:fotos.filter(Boolean),
+                timestamp:  isNaN(tsInicio) ? new Date().toISOString() : tsInicio.toISOString(),
+                periodo_inicio: isNaN(tsInicio) ? new Date().toISOString() : tsInicio.toISOString(),
+                periodo_fim:    isNaN(tsFim)    ? null : tsFim.toISOString(),
+                os_referencia:  glosaOS.trim().toUpperCase()   || null,
+                unidade_ref:    glosaUnid.trim().toUpperCase() || null
+            };
+            const hist = await idbKeyval.get('vistorias_history') || [];
+            await idbKeyval.set('vistorias_history', [...hist, entry]);
+            setView('success');
+        } catch(e) { alert('Erro ao salvar: '+e.message); }
+        finally { setLoading(false); loadHistory(); }
+    };
+
+    const limparHistorico = async () => {
+        if (!window.confirm('⚠️ ATENÇÃO\n\nIsso irá apagar TODOS os registros locais do histórico.\nExporte o ZIP antes de continuar.\n\nDeseja mesmo limpar?')) return;
+        await idbKeyval.set('vistorias_history', []);
+        setHistory([]);
+        alert('Histórico limpo com sucesso.');
+    };
+
+    const b64ToBlob = b64 => {
+        const [meta, data] = b64.split(';base64,');
+        const mime = meta.split(':')[1];
+        const raw = atob(data);
+        const arr = new Uint8Array(raw.length);
+        for (let i=0;i<raw.length;i++) arr[i]=raw.charCodeAt(i);
+        return new Blob([arr], {type:mime});
+    };
+
+    const exportFiscalZip = async () => {
+        const hist = await idbKeyval.get('vistorias_history') || [];
+        if (hist.length === 0) { alert('Nenhum registro para exportar.'); return; }
+
+        const from = new Date(`${exportDateFrom}T${exportTimeFrom}:00`);
+        const to   = new Date(`${exportDateTo}T${exportTimeTo}:59`);
+        const filtered = hist.filter(item => {
+            const d = new Date(item.timestamp);
+            return d >= from && d <= to;
+        });
+        if (filtered.length === 0) {
+            alert(`Nenhum registro de ${exportDateFrom} ${exportTimeFrom} até ${exportDateTo} ${exportTimeTo}.`);
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const zip = new JSZip();
+            const imgFolder = zip.folder('EVIDENCIAS_GEORREFERENCIADAS');
+
+            const ncs = filtered.map((item, idx) => {
+                const photosPaths = [];
+                (item.fotosBase64||[]).forEach((b64,pIdx) => {
+                    if (!b64) return;
+                    const fn = `NC_${idx}_FOTO_${pIdx}.jpg`;
+                    imgFolder.file(fn, b64ToBlob(b64));
+                    photosPaths.push(fn);
+                });
+                const ts   = new Date(item.timestamp);
+                const tsFim = item.periodo_fim ? new Date(item.periodo_fim) : null;
+                const rule = GLOSA_RULES.find(r => r.id===item.rule_id)||{};
+                const latVal = item.lat ?? (item.gps ? parseFloat(item.gps.split(',')[0]) : null);
+                const lngVal = item.lng ?? (item.gps ? parseFloat(item.gps.split(',')[1]) : null);
+                return {
+                    // Chave de deduplicação para o Gestor
+                    id_nc:`NC_${ts.getTime()}_${idx}`,
+                    chave_dedup: `${item.rule_id}_${Math.round(latVal*1000)}_${Math.round(lngVal*1000)}_${ts.toISOString().slice(0,13)}`,
+                    // Dados temporais
+                    timestamp:          item.timestamp,
+                    periodo_inicio:     item.periodo_inicio || item.timestamp,
+                    periodo_fim:        item.periodo_fim    || null,
+                    data_vistoria:      ts.toLocaleDateString('pt-BR'),
+                    hora_vistoria:      ts.toLocaleTimeString('pt-BR'),
+                    hora_fim_vistoria:  tsFim ? tsFim.toLocaleTimeString('pt-BR') : null,
+                    // Fiscal e regra
+                    fiscal:             item.fiscal||fiscal,
+                    rule_id:            item.rule_id,
+                    glosa_percentual:   rule.glosa||'',
+                    grupo:              rule.group||'',
+                    categoria:          item.categoria,
+                    descricao:          item.observacao,
+                    // Localização (GPS obrigatório)
+                    endereco:           item.endereco,
+                    lat:                latVal,
+                    lng:                lngVal,
+                    coords:             item.gps||'',
+                    // Referências para cruzamento por OS/Unidade
+                    os_referencia:      item.os_referencia  || null,
+                    unidade_ref:        item.unidade_ref    || null,
+                    fotos:              photosPaths
+                };
+            });
+
+
+            const bundle = {
+                versao:'RAD_FISCAL_v2.0', tipo:'AUDITORIA_FISCAL',
+                fiscal, periodo_inicio:`${exportDateFrom} ${exportTimeFrom}`,
+                periodo_fim:`${exportDateTo} ${exportTimeTo}`,
+                data_export:new Date().toISOString(),
+                total_naoConformidades:ncs.length, naoConformidades:ncs
+            };
+            const bundleStr = JSON.stringify(bundle,null,2);
+            zip.file('AUDITORIA_FISCAL.json', bundleStr);
+
+            const seal = CryptoJS.HmacSHA256(bundleStr, HMAC_KEY).toString();
+            zip.file('CERTIFICADO_INTEGRIDADE.txt',
+                `SISTEMA RAD FISCAL v2.0 - CERTIFICADO DE ORIGEM\n` +
+                `-------------------------------------------\n` +
+                `AUTOR: Eng. Florestal Thyêgo Nunes Alves Barreto — CREA-PR PE-048841/D\n` +
+                `ID_INTEGRIDADE: ${seal}\n` +
+                `DATA_GERACAO: ${new Date().toLocaleString('pt-BR')}\n\n` +
+                `AVISO: Este ZIP foi selado digitalmente. Qualquer alteração invalida a assinatura.`
+            );
+
+            // Excel
+            const headers = ['DATA','HORA','FISCAL','ITEM TR','% GLOSA','GRUPO','OCORRÊNCIA','DESCRIÇÃO','ENDEREÇO','LAT','LNG','OS / PROTOCOLO','ID ÁRVORE (SISTEMA)'];
+            const rows = ncs.map(nc => [nc.data_vistoria,nc.hora_vistoria,nc.fiscal,`Item ${nc.rule_id}`,nc.glosa_percentual,nc.grupo,nc.categoria,nc.descricao,nc.endereco,nc.lat,nc.lng, nc.os_referencia || '', nc.unidade_ref || '']);
+            const ws = XLSX.utils.aoa_to_sheet([headers,...rows]);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'FISCALIZACAO');
+            zip.file(`PLANILHA_FISCAL_${exportDateFrom}.xlsx`, XLSX.write(wb,{bookType:'xlsx',type:'array'}));
+
+            const blob = await zip.generateAsync({type:'blob'});
+            const filename = `RAD_FISCAL_${(fiscal||'FISCAL').replace(/\s+/g,'_')}_${exportDateFrom}_${exportDateTo}.zip`;
+
+            // — Tenta Web Share (mobile) primeiro:
+            let shared = false;
+            if (typeof navigator.canShare === 'function') {
+                try {
+                    const zipFile = new File([blob], filename, {type:'application/zip'});
+                    if (navigator.canShare({files:[zipFile]})) {
+                        await navigator.share({
+                            title:'RAD FISCAL — Auditoria',
+                            text:`Relatório Fiscal: ${exportDateFrom} ${exportTimeFrom} → ${exportDateTo} ${exportTimeTo}\nFiscal: ${fiscal}`,
+                            files:[zipFile]
+                        });
+                        shared = true;
+                    }
+                } catch(err) { if (err.name!=='AbortError') console.warn('Share fallback:', err); }
+            }
+
+            if (!shared) {
+                // Desktop: download + mailto
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = filename; a.click();
+                setTimeout(() => URL.revokeObjectURL(url), 5000);
+                const subj = encodeURIComponent(`RAD FISCAL — ${exportDateFrom} ${exportTimeFrom} a ${exportDateTo} ${exportTimeTo}`);
+                const body = encodeURIComponent(
+                    `Daniela,\n\nSegue em anexo o arquivo "${filename}" contendo ${ncs.length} ocorrência(s) do período ${exportDateFrom} ${exportTimeFrom} → ${exportDateTo} ${exportTimeTo}.\n\nFiscal responsável: ${fiscal}\n\nGerado pelo Sistema SGP AUDIT PLATINUM — Prefeitura de Marechal Cândido Rondon.`
+                );
+                window.open(`mailto:${EMAIL_DESTINO}?subject=${subj}&body=${body}`);
+            }
+
+            alert(`✅ ZIP gerado com ${ncs.length} ocorrência(s)!\n📧 Destinatário: ${EMAIL_DESTINO}`);
+        } catch(e) { console.error(e); alert('Erro ao gerar ZIP: '+e.message); }
+        finally { setLoading(false); }
+    };
+
+    // ── HEADER COMPONENT ──────────────────────────────────────────────────
+    const Header = ({title, subtitle, showBack}) => (
+        <div className="elite-header">
+            <div className="flex items-center justify-between mb-4">
+                {showBack ? (
+                    <button onClick={() => setView('rules')} className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white active:scale-95 transition">
+                        <i className="fas fa-chevron-left"></i>
+                    </button>
+                ) : <div className="w-10"/>}
+                <img src="BRASÃO.jpg" className="w-16 h-16 drop-shadow-xl object-contain"
+                     onError={e => e.target.style.display='none'} alt="Brasão MCR"/>
+                <div className="w-10"/>
+            </div>
+            <div className="text-center">
+                <h1 className="text-2xl font-black text-white uppercase tracking-tighter leading-none mb-1">{title}</h1>
+                <p className="text-[10px] font-bold text-white/70 uppercase tracking-[0.2em]">{subtitle||'Fiscalização Técnica'}</p>
+            </div>
+        </div>
+    );
+
+    // ── TELA: Seleção de Fiscal ───────────────────────────────────────────
+    if (view === 'fiscal') return (
+        <div className="fade-in bg-slate-50 min-h-screen">
+            <div className="elite-header text-center flex flex-col items-center">
+                <img src="BRASÃO.jpg" className="w-28 h-28 mb-4 drop-shadow-2xl object-contain"
+                     onError={e => e.target.style.display='none'} alt="Brasão MCR"/>
+                <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Vistoria Fiscal</h1>
+                <p className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em] mt-2">Marechal Cândido Rondon — PR</p>
+                <p className="text-[9px] font-bold text-white/40 mt-1">Eng. Florestal Thyêgo N. A. Barreto • CREA-PR PE-048841/D</p>
+            </div>
+            <div className="max-w-md mx-auto p-6 flex flex-col gap-4 -mt-10">
+                <p className="text-center font-black text-slate-400 uppercase text-[10px] tracking-widest mb-1">Identifique-se para continuar</p>
+                <form onSubmit={e => {
+                    e.preventDefault();
+                    if(!loginSelect) return alert('Selecione seu nome!');
+                    if(FISCAIS_AUTH[loginSelect] !== loginSenha) return alert('Senha Incorreta! Acesso negado.');
+                    setFiscal(loginSelect);
+                    setView('rules');
+                }} className="flex flex-col gap-4">
+                    <select value={loginSelect} onChange={e=>setLoginSelect(e.target.value)}
+                        className="radpoda-card p-5 font-black uppercase text-slate-700 w-full focus:ring-2 focus:ring-emerald-500 outline-none border-b-[6px] border-slate-200 appearance-none bg-white text-center">
+                        <option value="" disabled>-- Selecione seu Nome --</option>
+                        {Object.keys(FISCAIS_AUTH).map(name => <option key={name} value={name}>{name}</option>)}
+                    </select>
+                    
+                    <input type="password" value={loginSenha} onChange={e=>setLoginSenha(e.target.value)}
+                        placeholder="••••••••"
+                        className="radpoda-card p-5 font-black uppercase text-slate-700 w-full text-center focus:ring-2 focus:ring-emerald-500 outline-none text-2xl tracking-[0.5em] border-b-[6px] border-slate-200" />
+
+                    <button type="submit"
+                        className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-[2rem] font-black text-lg uppercase py-5 shadow-xl btn-active border-b-8 border-emerald-800 transition flex justify-center items-center gap-2 mt-2">
+                        <i className="fas fa-lock-open"></i> Acessar RAD Fiscal
+                    </button>
+                </form>
+                <button onClick={() => { loadHistory(); setView('history'); }}
+                    className="mt-4 flex items-center justify-center gap-2 text-slate-400 font-bold uppercase text-xs hover:text-emerald-500 transition">
+                    <i className="fas fa-clock-rotate-left"></i> Histórico e Exportação
+                </button>
+            </div>
+            <div className="mt-10 text-center opacity-30 pb-8">
+                <p className="font-black text-[8px] uppercase tracking-widest">SGP AUDIT PLATINUM v2.0 — OFFLINE</p>
+            </div>
+        </div>
+    );
+
+    // ── TELA: Histórico / Exportação ──────────────────────────────────────
+    if (view === 'history') return (
+        <div className="fade-in bg-slate-50 min-h-screen pb-20">
+            <Header title="Histórico" subtitle="Exportação e Registros"/>
+            <div className="max-w-md mx-auto p-6 -mt-10 space-y-4">
+                <button onClick={() => setView('fiscal')} className="w-full bg-slate-800 text-white py-4 rounded-2xl font-black uppercase text-xs mb-2 shadow-lg active:scale-95 transition">
+                    <i className="fas fa-chevron-left mr-2"></i>Voltar ao Menu
+                </button>
+
+                {/* Painel de Exportação */}
+                <div className="bg-white rounded-[2rem] p-5 shadow-md border border-slate-100">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <i className="fas fa-calendar-days text-emerald-500"></i> Período de Exportação
+                    </p>
+                    <div className="grid grid-cols-2 gap-3 mb-3">
+                        <div>
+                            <label className="block text-[8px] font-black text-slate-400 uppercase mb-1">Data Início</label>
+                            <input type="date" value={exportDateFrom} onChange={e=>setExportDateFrom(e.target.value)}
+                                className="w-full border-2 border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-700 focus:border-emerald-500 focus:outline-none"/>
+                        </div>
+                        <div>
+                            <label className="block text-[8px] font-black text-slate-400 uppercase mb-1">Hora Início</label>
+                            <input type="time" value={exportTimeFrom} onChange={e=>setExportTimeFrom(e.target.value)}
+                                className="w-full border-2 border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-700 focus:border-emerald-500 focus:outline-none"/>
+                        </div>
+                        <div>
+                            <label className="block text-[8px] font-black text-slate-400 uppercase mb-1">Data Fim</label>
+                            <input type="date" value={exportDateTo} onChange={e=>setExportDateTo(e.target.value)}
+                                className="w-full border-2 border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-700 focus:border-emerald-500 focus:outline-none"/>
+                        </div>
+                        <div>
+                            <label className="block text-[8px] font-black text-slate-400 uppercase mb-1">Hora Fim</label>
+                            <input type="time" value={exportTimeTo} onChange={e=>setExportTimeTo(e.target.value)}
+                                className="w-full border-2 border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-700 focus:border-emerald-500 focus:outline-none"/>
+                        </div>
+                    </div>
+                    <div className="bg-emerald-50 rounded-xl p-3 mb-3 border border-emerald-100">
+                        <p className="text-[9px] font-bold text-emerald-700 flex items-center gap-2">
+                            <i className="fas fa-paper-plane"></i>
+                            Será enviado para: <span className="font-black">{EMAIL_DESTINO}</span>
+                        </p>
+                    </div>
+                    <button onClick={exportFiscalZip} disabled={loading}
+                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-black px-4 py-4 rounded-2xl shadow-lg flex items-center justify-center gap-2 active:scale-95 transition disabled:opacity-50">
+                        <i className={loading ? 'fas fa-spinner fa-spin' : 'fas fa-file-zipper'}></i>
+                        {loading ? 'GERANDO ZIP...' : 'GERAR E ENVIAR RAD FISCAL'}
+                    </button>
+                    <button onClick={limparHistorico}
+                        className="w-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-[10px] font-black px-4 py-3 rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition mt-1">
+                        <i className="fas fa-trash-can"></i> Limpar Histórico Local
+                    </button>
+                </div>
+
+                {/* Lista do Histórico */}
+                <div className="flex justify-between items-center px-2">
+                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Últimos {history.length} Registros</h3>
+                </div>
+                {history.length === 0 && (
+                    <div className="radpoda-card p-10 text-center">
+                        <i className="fas fa-folder-open text-slate-200 text-5xl mb-4 block"></i>
+                        <p className="text-slate-400 font-bold uppercase text-xs">Nenhum registro encontrado</p>
+                    </div>
+                )}
+                {history.map((item,idx) => {
+                    const rule = GLOSA_RULES.find(r=>r.id===item.rule_id)||{};
+                    return (
+                        <div key={idx} className="radpoda-card p-4 flex gap-3 border-l-4 border-emerald-500">
+                            {item.fotosBase64?.[0] && (
+                                <div className="w-14 h-14 bg-slate-100 rounded-xl overflow-hidden shrink-0 border border-slate-200">
+                                    <img src={item.fotosBase64[0]} className="w-full h-full object-cover" alt=""/>
+                                </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                                <div className="flex justify-between items-start mb-1">
+                                    <span className="text-[10px] font-black text-slate-800 uppercase line-clamp-1">{item.categoria}</span>
+                                    <span className="text-[8px] font-mono text-slate-400 shrink-0 ml-1">{new Date(item.timestamp).toLocaleString('pt-BR')}</span>
+                                </div>
+                                <p className="text-[9px] text-slate-500 font-medium line-clamp-2 italic">"{item.observacao}"</p>
+                                <p className="text-[8px] text-slate-400 mt-1"><i className="fas fa-location-dot mr-1"></i>{(item.endereco||'').substring(0,30)}</p>
+                                <span className="text-[8px] font-black text-red-600 bg-red-50 px-2 py-0.5 rounded-full border border-red-100 uppercase mt-1 inline-block">
+                                    {rule.glosa} — Item {item.rule_id}
+                                </span>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+
+    // ── TELA: Menu de Regras ──────────────────────────────────────────────
+    if (view === 'rules') {
+        const groups = ['CONFORMIDADE','QUALIDADE','SEGURANÇA','GESTÃO','CONTROLE'];
+        const glabels = {'CONFORMIDADE':'Parecer Favorável (Sem Glosa)','QUALIDADE':'Qualidade e Inexecução','SEGURANÇA':'Segurança e EPIs','GESTÃO':'Gestão e Documentação','CONTROLE':'Controle e Rastreabilidade'};
+        const gicons  = {'CONFORMIDADE':'fa-thumbs-up','QUALIDADE':'fa-medal','SEGURANÇA':'fa-shield-heart','GESTÃO':'fa-file-invoice','CONTROLE':'fa-satellite-dish'};
+        const gcolors = {'CONFORMIDADE':'#3b82f6','QUALIDADE':'var(--grp-qualidade)','SEGURANÇA':'var(--grp-seguranca)','GESTÃO':'var(--grp-gestao)','CONTROLE':'var(--grp-controle)'};
+        return (
+            <div className="fade-in bg-slate-50 min-h-screen pb-10">
+                <Header title="Menu de Glosas" subtitle={`Fiscal: ${fiscal}`}/>
+                <div className="max-w-md mx-auto p-6 -mt-10 space-y-8">
+                    {groups.map(grp => (
+                        <div key={grp} className="space-y-3">
+                            <div className="flex items-center gap-3 px-2">
+                                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs shadow-lg"
+                                     style={{backgroundColor:gcolors[grp]}}>
+                                    <i className={`fas ${gicons[grp]}`}></i>
+                                </div>
+                                <h2 className="font-black text-slate-800 uppercase tracking-tighter text-base">{glabels[grp]}</h2>
+                                {grp === 'CONFORMIDADE' && (
+                                    <span className="text-[8px] font-black bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full border border-blue-200 uppercase">SEM DESCONTO</span>
+                                )}
+                            </div>
+                            {GLOSA_RULES.filter(r=>r.group===grp).map(rule => {
+                                const isSevere  = rule.glosa==='8.00%';
+                                const isConform = rule.id === 99;
+                                return (
+                                    <button key={rule.id} onClick={()=>{
+                            setVisitaData(nowDate()); setVisitaHora(nowTime());
+                            setGlosaFimData(nowDate()); setGlosaFimHora('18:00');
+                            setGlosaOS(''); setGlosaUnid('');
+                            setSelectedRule(rule); setView('details');
+                        }}
+                                        className={`radpoda-card p-5 text-left btn-active border-l-[6px] w-full flex flex-col gap-1 ${isSevere?'pulse-severe border-red-600 bg-red-50/30':''} ${isConform?'border-blue-500 bg-blue-50/40':''}`}
+                                        style={{borderLeftColor:isSevere?'#dc2626':isConform?'#3b82f6':gcolors[grp]}}>
+                                        <div className="flex justify-between items-start">
+                                            <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md ${
+                                                isSevere?'bg-red-600 text-white':isConform?'bg-blue-600 text-white':''
+                                            }`}
+                                                  style={(!isSevere && !isConform)?{backgroundColor:`${gcolors[grp]}22`,color:gcolors[grp]}:{}}>
+                                                {isSevere?'GRAVÍSSIMA':isConform?'ATESTE OFICIAL':(`ITEM ${rule.id}`)} • {rule.glosa}
+                                            </span>
+                                            {isSevere && <i className="fas fa-triangle-exclamation text-red-600 animate-pulse"></i>}
+                                            {isConform && <i className="fas fa-shield-check text-blue-600"></i>}
+                                        </div>
+                                        <p className="font-bold text-slate-700 text-sm leading-tight">{rule.cat}</p>
+                                        <p className="text-[10px] text-slate-400 font-medium line-clamp-1 italic">{rule.desc}</p>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    ))}
+                    <button onClick={()=>{loadHistory();setView('history');}}
+                        className="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 py-4 rounded-2xl font-black uppercase text-xs flex items-center justify-center gap-2 transition">
+                        <i className="fas fa-clock-rotate-left"></i> Histórico e Exportação
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    // ── TELA: Detalhes / Formulário da Glosa ─────────────────────────────
+    if (view === 'details') return (
+        <div className="fade-in bg-slate-50 min-h-screen pb-28">
+            <Header title="Evidências" subtitle={selectedRule.cat} showBack={true}/>
+            <div className="max-w-md mx-auto p-6 -mt-10 space-y-5">
+                {/* Card da Regra */}
+                <div className="bg-slate-800 p-6 rounded-[2rem] text-white shadow-2xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-10"><i className="fas fa-gavel text-6xl rotate-12"></i></div>
+                    <p className="text-[9px] font-black opacity-50 uppercase mb-2">Item {selectedRule.id} • {selectedRule.glosa}</p>
+                    <p className="font-bold text-lg leading-tight uppercase mb-3">{selectedRule.cat}</p>
+                    <p className="text-xs opacity-70 italic leading-relaxed">{selectedRule.desc}</p>
+                </div>
+
+                {/* Guia */}
+                <div className="bg-amber-50 border-2 border-amber-200 p-5 rounded-[2rem] relative">
+                    <div className="absolute -top-3 left-6 bg-amber-200 text-amber-800 px-3 py-1 rounded-full text-[9px] font-black uppercase flex items-center gap-2">
+                        <i className="fas fa-info-circle"></i> Como Proceder
+                    </div>
+                    <p className="text-xs text-amber-900 font-bold leading-relaxed mt-1">{selectedRule.howTo}</p>
+                </div>
+
+                {/* GPS — OBRIGATÓRIO */}
+                <div className={`p-4 rounded-2xl shadow-inner border-2 ${
+                    gps.status==='ok' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : gps.status==='searching' ? 'bg-amber-50 text-amber-700 border-amber-200 animate-pulse' : 'bg-red-50 text-red-700 border-red-200'
+                }`}>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                                gps.status==='ok' ? 'bg-emerald-200' : gps.status==='searching' ? 'bg-amber-200' : 'bg-red-200'
+                            }`}>
+                                <i className={`fas ${gps.status==='ok'?'fa-location-dot':gps.status==='searching'?'fa-satellite-dish fa-spin':'fa-location-xmark'} text-xs`}></i>
+                            </div>
+                            <div>
+                                <span className="text-[10px] font-black uppercase block">
+                                    {gps.status==='ok' ? '✔ GPS Coletado — Coordenadas Oficiais TCE' : gps.status==='searching' ? '⏳ Coletando coordenadas...' : '✘ FALHA NO GPS — Obrigatório para registro'}
+                                </span>
+                                <span className="text-[9px] font-mono font-bold block mt-0.5">{gps.lat ? `${gps.lat}, ${gps.lng}` : 'aguardando...'}</span>
+                                {gps.status==='error' && <span className="text-[8px] font-bold opacity-80 block mt-1">Permita localização no Chrome/Safari ou vá para área aberta.</span>}
+                            </div>
+                        </div>
+                        <button onClick={requestGps}
+                            className={`shrink-0 ml-2 text-[9px] font-black uppercase px-3 py-2 rounded-xl shadow border-b-4 active:scale-95 transition ${
+                                gps.status==='ok' ? 'bg-emerald-600 border-emerald-800 text-white' : 'bg-slate-800 border-slate-900 text-white'
+                            }`}>
+                            <i className="fas fa-rotate mr-1"></i>{gps.status==='ok' ? 'Atualizar' : 'Tentar GPS'}
+                        </button>
+                    </div>
+                </div>
+
+                {/* Endereço */}
+                <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase mb-2 ml-1 flex items-center gap-2">
+                        Localização / Endereço
+                        {enderecoLoading && <span className="text-[8px] text-emerald-500 font-bold animate-pulse normal-case"><i className="fas fa-spinner fa-spin mr-1"></i>buscando endereço...</span>}
+                    </label>
+                    <input type="text" value={endereco} onChange={e=>setEndereco(e.target.value)}
+                        className="radpoda-card w-full p-4 text-sm font-bold uppercase focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                        placeholder={enderecoLoading ? 'BUSCANDO...' : 'RUA, NÚMERO, BAIRRO...'}/>
+                    <p className="text-[8px] text-slate-400 font-bold mt-1 ml-1">
+                        <i className="fas fa-magic-wand-sparkles mr-1 text-emerald-400"></i>Preenchido automaticamente pelo GPS ao tirar a 1ª foto
+                    </p>
+                </div>
+
+                {/* Relato */}
+                <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase mb-2 ml-1">Relato da Irregularidade</label>
+                    <textarea value={relato} onChange={e=>setRelato(e.target.value)}
+                        className="radpoda-card w-full p-5 text-sm font-bold uppercase min-h-[110px] focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                        placeholder="DESCREVA DETALHADAMENTE O QUE FOI OBSERVADO..."/>
+                </div>
+
+                {/* Aviso sobre timestamp */}
+                <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4 flex gap-3 items-start">
+                    <div className="w-8 h-8 bg-blue-200 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                        <i className="fas fa-clock text-blue-700 text-xs"></i>
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-black text-blue-700 uppercase mb-1">⏱ As fotos devem ter timestamp visível</p>
+                        <p className="text-[9px] text-blue-600 font-bold leading-relaxed">
+                            Use o app <strong>"Timestamp Camera"</strong> ou ative a sobreposição de data/hora nas configurações da câmera.
+                            Fotos sem timestamp não têm validade como prova fiscal.
+                        </p>
+                    </div>
+                </div>
+
+                {/* Período da Glosa: Início e Fim */}
+                {selectedRule.id !== 99 && (
+                <div className="radpoda-card p-4 space-y-3">
+                    <p className="text-[10px] font-black text-slate-400 uppercase flex items-center gap-2">
+                        <i className="fas fa-calendar-clock text-emerald-500"></i>
+                        Período da Glosa
+                        <span className="text-[8px] font-bold text-slate-300 normal-case">— preenchido pelo fiscal</span>
+                    </p>
+                    {/* Início */}
+                    <div>
+                        <p className="text-[8px] font-black text-emerald-600 uppercase mb-1 flex items-center gap-1"><i className="fas fa-play"></i> Início da Irregularidade</p>
+                        <div className="grid grid-cols-2 gap-2">
+                            <div>
+                                <label className="block text-[8px] font-black text-slate-400 uppercase mb-1">Data</label>
+                                <input type="date" value={visitaData} onChange={e=>setVisitaData(e.target.value)}
+                                    className="w-full border-2 border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-700 focus:border-emerald-500 focus:outline-none"/>
+                            </div>
+                            <div>
+                                <label className="block text-[8px] font-black text-slate-400 uppercase mb-1">Hora</label>
+                                <input type="time" value={visitaHora} onChange={e=>setVisitaHora(e.target.value)}
+                                    className="w-full border-2 border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-700 focus:border-emerald-500 focus:outline-none"/>
+                            </div>
+                        </div>
+                    </div>
+                    {/* Fim */}
+                    <div>
+                        <p className="text-[8px] font-black text-red-500 uppercase mb-1 flex items-center gap-1"><i className="fas fa-stop"></i> Fim do Período de Glosa</p>
+                        <div className="grid grid-cols-2 gap-2">
+                            <div>
+                                <label className="block text-[8px] font-black text-slate-400 uppercase mb-1">Data</label>
+                                <input type="date" value={glosaFimData} onChange={e=>setGlosaFimData(e.target.value)}
+                                    className="w-full border-2 border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-700 focus:border-red-400 focus:outline-none"/>
+                            </div>
+                            <div>
+                                <label className="block text-[8px] font-black text-slate-400 uppercase mb-1">Hora</label>
+                                <input type="time" value={glosaFimHora} onChange={e=>setGlosaFimHora(e.target.value)}
+                                    className="w-full border-2 border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-700 focus:border-red-400 focus:outline-none"/>
+                            </div>
+                        </div>
+                    </div>
+                    {/* OS e Unidade */}
+                    <div className="grid grid-cols-2 gap-2">
+                        <div>
+                            <label className="block text-[8px] font-black text-slate-400 uppercase mb-1"><i className="fas fa-file-alt mr-1"></i>OS / Protocolo</label>
+                            <input type="text" value={glosaOS} onChange={e=>setGlosaOS(e.target.value)}
+                                className="w-full border-2 border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-700 uppercase focus:border-emerald-500 focus:outline-none"
+                                placeholder="666/2026"/>
+                        </div>
+                        <div>
+                            <label className="block text-[8px] font-black text-slate-400 uppercase mb-1"><i className="fas fa-hashtag mr-1"></i>ID ÁRVORE (SISTEMA) / UNID</label>
+                            <input type="text" value={glosaUnid} onChange={e=>setGlosaUnid(e.target.value)}
+                                className="w-full border-2 border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-700 uppercase focus:border-emerald-500 focus:outline-none"
+                                placeholder="Ex: 3"/>
+                        </div>
+                    </div>
+                    <p className="text-[8px] text-slate-400 font-bold italic">O período e as coordenadas GPS são usados pelo Gestor para calcular glosas sem duplicação.</p>
+                </div>
+                )}
+
+                {/* Fotos */}
+                <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase mb-2 ml-1">Captura de Fotos (Obrigatório — mín. 1)</label>
+                    <div className="grid grid-cols-3 gap-3">
+                        {[0,1,2].map(i => (
+                            <label key={i} className="radpoda-card relative aspect-square flex flex-col items-center justify-center cursor-pointer overflow-hidden border-2 border-dashed border-slate-200 hover:border-emerald-400 transition-colors">
+                                {fotos[i]
+                                    ? <img src={fotos[i]} className="w-full h-full object-cover" alt=""/>
+                                    : <><i className="fas fa-camera text-slate-300 text-2xl mb-1"></i>
+                                       <span className="text-[8px] font-black text-slate-400 uppercase">Foto {i+1}</span></>
+                                }
+                                <input type="file" accept="image/*" className="hidden"
+                                    onChange={e => e.target.files[0] && processPhoto(e.target.files[0], i)}/>
+                            </label>
+                        ))}
+                    </div>
+                    <p className="text-[8px] text-slate-400 font-bold text-center mt-2">
+                        <i className="fas fa-images mr-1"></i>Câmera ou Galeria — 1ª foto preenche data, hora e endereço automaticamente
+                    </p>
+                </div>
+            </div>
+
+            {/* Botão fixo — bloqueado sem GPS */}
+            <div className="fixed bottom-6 left-6 right-6 max-w-md mx-auto">
+                {gps.status !== 'ok' && (
+                    <div className="bg-red-600 text-white text-center text-[10px] font-black uppercase py-2 px-4 rounded-2xl mb-2 shadow-lg">
+                        <i className="fas fa-location-xmark mr-1"></i> Sem GPS — ative a localização para registrar
+                    </div>
+                )}
+                <button disabled={loading || !relato.trim() || fotos.filter(Boolean).length===0 || gps.status!=='ok'} onClick={sendVistoria}
+                    className="w-full py-6 bg-emerald-600 text-white rounded-[2rem] font-black text-xl uppercase shadow-2xl btn-active disabled:bg-slate-300 flex items-center justify-center gap-3 border-b-8 border-emerald-800 transition-colors">
+                    {loading ? <><i className="fas fa-spinner fa-spin"></i> SALVANDO...</> : <><i className="fas fa-paper-plane mr-2"></i> {selectedRule.id===99 ? 'Atestar Conformidade' : 'Confirmar Glosa'}</>}
+                </button>
+            </div>
+        </div>
+    );
+
+    // ── TELA: Sucesso ────────────────────────────────────────────────────
+    if (view === 'success') return (
+        <div className="min-h-screen bg-emerald-600 flex flex-col items-center justify-center p-8 text-center text-white fade-in">
+            <div className="w-28 h-28 bg-white/20 rounded-full flex items-center justify-center mb-8 backdrop-blur-md">
+                <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-2xl">
+                    <i className="fas fa-check text-4xl text-emerald-600"></i>
+                </div>
+            </div>
+            <h1 className="text-4xl font-black mb-4 uppercase tracking-tighter italic">{selectedRule?.id===99 ? 'Vistoria Conforme Salva!' : 'Glosa Registrada!'}</h1>
+            <p className="opacity-90 mb-4 font-bold max-w-[240px]">Registro salvo localmente com sucesso.</p>
+            <p className="text-[11px] opacity-70 mb-10">Use o <strong>Histórico e Exportação</strong> para gerar o ZIP e enviar para a Daniela.</p>
+            <div className="flex flex-col gap-3 w-full max-w-xs">
+                <button onClick={()=>{loadHistory();setView('history');}}
+                    className="radpoda-card w-full bg-white text-emerald-600 py-5 font-black uppercase text-sm shadow-2xl btn-active flex items-center justify-center gap-2">
+                    <i className="fas fa-file-zipper"></i> Exportar Agora
+                </button>
+                <button onClick={()=>{setRelato('');setEndereco('');setFotos([null,null,null]);setSelectedRule(null);setView('rules');}}
+                    className="w-full bg-emerald-700 text-white py-4 font-black uppercase text-sm rounded-2xl btn-active flex items-center justify-center gap-2">
+                    <i className="fas fa-plus"></i> {selectedRule?.id===99 ? 'Nova Vistoria' : 'Nova Glosa'}
+                </button>
+                <button onClick={()=>{setRelato('');setEndereco('');setFotos([null,null,null]);setSelectedRule(null);setView('fiscal');}}
+                    className="text-white/70 font-bold uppercase text-xs py-2">
+                    Menu Principal
+                </button>
+            </div>
+        </div>
+    );
+
+    return null;
+};
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App/>);
+</script>
+</body>
+</html>
