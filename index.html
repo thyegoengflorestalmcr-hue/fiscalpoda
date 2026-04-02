@@ -16,19 +16,98 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --primary:#059669; --primary-dark:#064e3b; --accent:#dc2626; --bg-soft:#ecfdf5; --grp-qualidade:#059669; --grp-seguranca:#dc2626; --grp-gestao:#f59e0b; --grp-controle:#10b981; }
-        body { background:#f8fafc; font-family:'Inter',sans-serif; -webkit-tap-highlight-color:transparent; color:#1e293b; }
-        .radpoda-card { background:white; border-radius:2rem; box-shadow:0 10px 25px -5px rgba(0,0,0,.05),0 8px 10px -6px rgba(0,0,0,.05); border:1px solid #f1f5f9; }
-        .btn-active:active { transform:scale(0.96); }
-        .fade-in { animation:fadeIn .4s cubic-bezier(.16,1,.3,1); }
-        @keyframes fadeIn { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-        .no-scrollbar::-webkit-scrollbar { display:none; }
-        .select-btn { border:2px solid #e2e8f0; transition:all .2s; }
-        .select-btn.active { border-color:var(--primary); background:var(--bg-soft); color:var(--primary-dark); box-shadow:0 4px 12px rgba(0,51,153,.15); }
-        .elite-header { background:linear-gradient(135deg,var(--primary-dark) 0%,var(--primary) 100%); color:white; padding:2.5rem 1.5rem; border-bottom-left-radius:3rem; border-bottom-right-radius:3rem; box-shadow:0 20px 40px -10px rgba(0,51,153,.4); margin-bottom:2.5rem; position:relative; overflow:hidden; border-bottom:4px solid rgba(255,255,255,.1); }
-        .pulse-severe { animation:pulse-severe 2s infinite; }
-        @keyframes pulse-severe { 0%{box-shadow:0 0 0 0 rgba(225,29,72,.4)} 70%{box-shadow:0 0 0 10px rgba(225,29,72,0)} 100%{box-shadow:0 0 0 0 rgba(225,29,72,0)} }
-        input[type=time],input[type=date] { -webkit-appearance:none; appearance:none; }
+        :root { 
+            --primary: #059669; 
+            --primary-dark: #064e3b; 
+            --primary-light: #10b981;
+            --accent: #dc2626; 
+            --bg-soft: #f8fafc; 
+            --glass: rgba(255, 255, 255, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.3);
+            --slate-900: #0f172a;
+            --emerald-600: #059669;
+        }
+        
+        body { 
+            background: #f1f5f9; 
+            font-family: 'Inter', sans-serif; 
+            -webkit-tap-highlight-color: transparent; 
+            color: #1e293b; 
+            letter-spacing: -0.01em; 
+        }
+
+        .elite-header { 
+            background: linear-gradient(135deg, var(--slate-900) 0%, #1e293b 100%); 
+            color: white; 
+            padding: 3rem 1.5rem; 
+            border-bottom-left-radius: 3.5rem; 
+            border-bottom-right-radius: 3.5rem; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); 
+            margin-bottom: 2.5rem; 
+            position: relative; 
+            overflow: hidden; 
+            border-bottom: 5px solid var(--primary);
+        }
+        
+        .elite-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at center, rgba(16, 185, 129, 0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .radpoda-card { 
+            background: var(--glass); 
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 2.5rem; 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1); 
+            border: 1px solid var(--glass-border); 
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+        }
+
+        .btn-active:active { transform: scale(0.96); }
+        .fade-in { animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        .rule-card { 
+            border-left: 8px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .rule-card:hover { border-left-width: 12px; transform: translateX(4px); }
+
+        .pulse-severe { animation: pulse-severe 2s infinite; border: 2px solid var(--accent); }
+        @keyframes pulse-severe { 
+            0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); } 
+            70% { box-shadow: 0 0 0 15px rgba(220, 38, 38, 0); } 
+            100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); } 
+        }
+
+        input, select, textarea {
+            border-radius: 1.25rem !important;
+            border: 2px solid #e2e8f0 !important;
+            transition: all 0.2s !important;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15) !important;
+            background: white !important;
+        }
+
+        .status-badge {
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            letter-spacing: 0.05em;
+        }
     </style>
 </head>
 <body class="no-scrollbar bg-slate-50">
@@ -299,63 +378,67 @@ const App = () => {
                 const latVal = item.lat ?? (item.gps ? parseFloat(item.gps.split(',')[0]) : null);
                 const lngVal = item.lng ?? (item.gps ? parseFloat(item.gps.split(',')[1]) : null);
                 return {
-                    // Chave de deduplicação para o Gestor
                     id_nc:`NC_${ts.getTime()}_${idx}`,
                     chave_dedup: `${item.rule_id}_${Math.round(latVal*1000)}_${Math.round(lngVal*1000)}_${ts.toISOString().slice(0,13)}`,
-                    // Dados temporais
                     timestamp:          item.timestamp,
                     periodo_inicio:     item.periodo_inicio || item.timestamp,
                     periodo_fim:        item.periodo_fim    || null,
                     data_vistoria:      ts.toLocaleDateString('pt-BR'),
                     hora_vistoria:      ts.toLocaleTimeString('pt-BR'),
                     hora_fim_vistoria:  tsFim ? tsFim.toLocaleTimeString('pt-BR') : null,
-                    // Fiscal e regra
                     fiscal:             item.fiscal||fiscal,
                     rule_id:            item.rule_id,
                     glosa_percentual:   rule.glosa||'',
                     grupo:              rule.group||'',
                     categoria:          item.categoria,
                     descricao:          item.observacao,
-                    // Localização (GPS obrigatório)
                     endereco:           item.endereco,
                     lat:                latVal,
                     lng:                lngVal,
                     coords:             item.gps||'',
-                    // Referências para cruzamento por OS/Unidade
                     os_referencia:      item.os_referencia  || null,
                     unidade_ref:        item.unidade_ref    || null,
                     fotos:              photosPaths
                 };
             });
 
-
+            // 1. Gerar Dados do Relatório (JSON)
             const bundle = {
-                versao:'RAD_FISCAL_v2.0', tipo:'AUDITORIA_FISCAL',
+                versao:'RAD_FISCAL_ELITE_v2', tipo:'AUDITORIA_FISCAL',
                 fiscal, periodo_inicio:`${exportDateFrom} ${exportTimeFrom}`,
                 periodo_fim:`${exportDateTo} ${exportTimeTo}`,
                 data_export:new Date().toISOString(),
                 total_naoConformidades:ncs.length, naoConformidades:ncs
             };
             const bundleStr = JSON.stringify(bundle,null,2);
-            zip.file('AUDITORIA_FISCAL.json', bundleStr);
 
-            const seal = CryptoJS.HmacSHA256(bundleStr, HMAC_KEY).toString();
+            // 2. Gerar Planilha Oficial de Auditoria (CSV/XLSX)
+            const headers = ['DATA','HORA','FISCAL','ITEM TR','% GLOSA','GRUPO','OCORRÊNCIA','DESCRIÇÃO','ENDEREÇO','LAT','LNG','OS / PROTOCOLO','ID ÁRVORE (SISTEMA)'];
+            const rows = ncs.map(nc => [nc.data_vistoria,nc.hora_vistoria,nc.fiscal,`Item ${nc.rule_id}`,nc.glosa_percentual,nc.grupo,nc.categoria,nc.descricao,nc.endereco,nc.lat,nc.lng, nc.os_referencia || '', nc.unidade_ref || '']);
+            const csvContent = headers.join(";") + "\n" + rows.map(r => r.join(";")).join("\n");
+
+            // 3. Selagem Digital HMAC-SHA256 (JSON + Excel)
+            const seal = CryptoJS.HmacSHA256(bundleStr + "[SEP]" + csvContent, HMAC_KEY).toString();
+            
+            zip.file('AUDITORIA_FISCAL.json', bundleStr);
+            zip.file('PLANILHA_ATIVIDADES.csv', "\ufeff" + csvContent);
             zip.file('CERTIFICADO_INTEGRIDADE.txt',
-                `SISTEMA RAD FISCAL v2.0 - CERTIFICADO DE ORIGEM\n` +
-                `-------------------------------------------\n` +
+                `SISTEMA RAD FISCAL ELITE v2.0 - CERTIFICADO DE ORIGEM\n` +
+                `---------------------------------------------------\n` +
                 `AUTOR: Eng. Florestal Thyêgo Nunes Alves Barreto — CREA-PR PE-048841/D\n` +
                 `ID_INTEGRIDADE: ${seal}\n` +
                 `DATA_GERACAO: ${new Date().toLocaleString('pt-BR')}\n\n` +
-                `AVISO: Este ZIP foi selado digitalmente. Qualquer alteração invalida a assinatura.`
+                `AVISO DE SEGURANÇA:\n` +
+                `Este arquivo ZIP foi selado digitalmente no momento da exportação.\n` +
+                `Qualquer tentativa de alterar o arquivo JSON ou a Planilha CSV invalidará esta assinatura.\n` +
+                `A selagem protege a integridade forense das evidências fiscais colhidas em campo.`
             );
 
-            // Excel
-            const headers = ['DATA','HORA','FISCAL','ITEM TR','% GLOSA','GRUPO','OCORRÊNCIA','DESCRIÇÃO','ENDEREÇO','LAT','LNG','OS / PROTOCOLO','ID ÁRVORE (SISTEMA)'];
-            const rows = ncs.map(nc => [nc.data_vistoria,nc.hora_vistoria,nc.fiscal,`Item ${nc.rule_id}`,nc.glosa_percentual,nc.grupo,nc.categoria,nc.descricao,nc.endereco,nc.lat,nc.lng, nc.os_referencia || '', nc.unidade_ref || '']);
+            // XLSX adicional para compatibilidade
             const ws = XLSX.utils.aoa_to_sheet([headers,...rows]);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'FISCALIZACAO');
-            zip.file(`PLANILHA_FISCAL_${exportDateFrom}.xlsx`, XLSX.write(wb,{bookType:'xlsx',type:'array'}));
+            zip.file(`AUDITORIA_FISCAL_REVISAO.xlsx`, XLSX.write(wb,{bookType:'xlsx',type:'array'}));
 
             const blob = await zip.generateAsync({type:'blob'});
             const filename = `RAD_FISCAL_${(fiscal||'FISCAL').replace(/\s+/g,'_')}_${exportDateFrom}_${exportDateTo}.zip`;
@@ -397,64 +480,81 @@ const App = () => {
     // ── HEADER COMPONENT ──────────────────────────────────────────────────
     const Header = ({title, subtitle, showBack}) => (
         <div className="elite-header">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-8">
                 {showBack ? (
-                    <button onClick={() => setView('rules')} className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white active:scale-95 transition">
+                    <button onClick={() => setView('rules')} className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-white active:scale-95 transition backdrop-blur-md border border-white/20">
                         <i className="fas fa-chevron-left"></i>
                     </button>
-                ) : <div className="w-10"/>}
-                <img src="BRASÃO.jpg" className="w-16 h-16 drop-shadow-xl object-contain"
-                     onError={e => e.target.style.display='none'} alt="Brasão MCR"/>
-                <div className="w-10"/>
+                ) : <div className="w-12"/>}
+                <div className="bg-white p-3 rounded-3xl shadow-2xl rotate-3">
+                    <img src="BRASÃO.jpg" className="w-16 h-16 object-contain"
+                         onError={e => e.target.style.display='none'} alt="Brasão MCR"/>
+                </div>
+                <div className="w-12"/>
             </div>
             <div className="text-center">
-                <h1 className="text-2xl font-black text-white uppercase tracking-tighter leading-none mb-1">{title}</h1>
-                <p className="text-[10px] font-bold text-white/70 uppercase tracking-[0.2em]">{subtitle||'Fiscalização Técnica'}</p>
+                <h1 className="text-3xl font-[900] text-white uppercase tracking-tighter leading-none mb-2">{title}</h1>
+                <div className="inline-block px-4 py-1.5 rounded-full bg-emerald-500/20 backdrop-blur-md border border-emerald-400/30">
+                    <p className="text-[10px] font-black text-emerald-300 uppercase tracking-[0.25em]">{subtitle||'Fiscalização Técnica'}</p>
+                </div>
             </div>
         </div>
     );
 
     // ── TELA: Seleção de Fiscal ───────────────────────────────────────────
     if (view === 'fiscal') return (
-        <div className="fade-in bg-slate-50 min-h-screen">
-            <div className="elite-header text-center flex flex-col items-center">
-                <img src="BRASÃO.jpg" className="w-28 h-28 mb-4 drop-shadow-2xl object-contain"
-                     onError={e => e.target.style.display='none'} alt="Brasão MCR"/>
-                <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Vistoria Fiscal</h1>
-                <p className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em] mt-2">Marechal Cândido Rondon — PR</p>
-                <p className="text-[9px] font-bold text-white/40 mt-1">Eng. Florestal Thyêgo N. A. Barreto • CREA-PR PE-048841/D</p>
+        <div className="fade-in bg-[#f1f5f9] min-h-screen">
+            <div className="elite-header text-center flex flex-col items-center pb-16">
+                <div className="bg-white p-6 rounded-[3rem] shadow-2xl mb-8 -rotate-3 transition hover:rotate-0 duration-500">
+                    <img src="BRASÃO.jpg" className="w-24 h-24 object-contain"
+                         onError={e => e.target.style.display='none'} alt="Brasão MCR"/>
+                </div>
+                <h1 className="text-4xl font-[900] text-white uppercase tracking-tighter">RAD FISCAL</h1>
+                <div className="mt-4 px-6 py-2 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10">
+                    <p className="text-[10px] font-black text-white/60 uppercase tracking-[0.4em]">Elite Auditor v2.0</p>
+                </div>
+                <p className="text-[9px] font-bold text-white/30 mt-6 max-w-[250px]">Eng. Florestal Thyêgo N. A. Barreto • CREA-PR PE-048841/D</p>
             </div>
-            <div className="max-w-md mx-auto p-6 flex flex-col gap-4 -mt-10">
-                <p className="text-center font-black text-slate-400 uppercase text-[10px] tracking-widest mb-1">Identifique-se para continuar</p>
-                <form onSubmit={e => {
-                    e.preventDefault();
-                    if(!loginSelect) return alert('Selecione seu nome!');
-                    if(FISCAIS_AUTH[loginSelect] !== loginSenha) return alert('Senha Incorreta! Acesso negado.');
-                    setFiscal(loginSelect);
-                    setView('rules');
-                }} className="flex flex-col gap-4">
-                    <select value={loginSelect} onChange={e=>setLoginSelect(e.target.value)}
-                        className="radpoda-card p-5 font-black uppercase text-slate-700 w-full focus:ring-2 focus:ring-emerald-500 outline-none border-b-[6px] border-slate-200 appearance-none bg-white text-center">
-                        <option value="" disabled>-- Selecione seu Nome --</option>
-                        {Object.keys(FISCAIS_AUTH).map(name => <option key={name} value={name}>{name}</option>)}
-                    </select>
-                    
-                    <input type="password" value={loginSenha} onChange={e=>setLoginSenha(e.target.value)}
-                        placeholder="••••••••"
-                        className="radpoda-card p-5 font-black uppercase text-slate-700 w-full text-center focus:ring-2 focus:ring-emerald-500 outline-none text-2xl tracking-[0.5em] border-b-[6px] border-slate-200" />
+            <div className="max-w-md mx-auto p-6 flex flex-col gap-5 -mt-12">
+                <div className="radpoda-card p-8 space-y-6">
+                    <p className="text-center font-black text-slate-400 uppercase text-[10px] tracking-[0.2em] mb-2">Identificação Obrigatória</p>
+                    <form onSubmit={e => {
+                        e.preventDefault();
+                        if(!loginSelect) return alert('Selecione seu nome!');
+                        if(FISCAIS_AUTH[loginSelect] !== loginSenha) return alert('Senha Incorreta! Acesso negado.');
+                        setFiscal(loginSelect);
+                        setView('rules');
+                    }} className="flex flex-col gap-6">
+                        <div className="relative">
+                            <i className="fas fa-user-shield absolute left-5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <select value={loginSelect} onChange={e=>setLoginSelect(e.target.value)}
+                                className="w-full p-5 pl-14 font-black uppercase text-slate-700 focus:ring-4 focus:ring-emerald-500/20 outline-none border-0 bg-slate-100 appearance-none text-center rounded-2xl">
+                                <option value="" disabled>SELECIONE O FISCAL</option>
+                                {Object.keys(FISCAIS_AUTH).map(name => <option key={name} value={name}>{name}</option>)}
+                            </select>
+                        </div>
+                        
+                        <div className="relative">
+                            <i className="fas fa-key absolute left-5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="password" value={loginSenha} onChange={e=>setLoginSenha(e.target.value)}
+                                placeholder="SENHA"
+                                className="w-full p-5 pl-14 font-black uppercase text-slate-700 w-full text-center focus:ring-4 focus:ring-emerald-500/20 outline-none text-2xl tracking-[0.5em] border-0 bg-slate-100 rounded-2xl" />
+                        </div>
 
-                    <button type="submit"
-                        className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-[2rem] font-black text-lg uppercase py-5 shadow-xl btn-active border-b-8 border-emerald-800 transition flex justify-center items-center gap-2 mt-2">
-                        <i className="fas fa-lock-open"></i> Acessar RAD Fiscal
-                    </button>
-                </form>
+                        <button type="submit"
+                            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-[2rem] font-black text-lg uppercase py-5 shadow-2xl shadow-emerald-500/20 btn-active border-b-8 border-emerald-800 transition-all flex justify-center items-center gap-3">
+                            <i className="fas fa-shield-halved"></i> Acessar Auditoria
+                        </button>
+                    </form>
+                </div>
+                
                 <button onClick={() => { loadHistory(); setView('history'); }}
-                    className="mt-4 flex items-center justify-center gap-2 text-slate-400 font-bold uppercase text-xs hover:text-emerald-500 transition">
-                    <i className="fas fa-clock-rotate-left"></i> Histórico e Exportação
+                    className="flex items-center justify-center gap-3 text-slate-400 font-black uppercase text-[10px] hover:text-emerald-600 transition tracking-widest py-4">
+                    <i className="fas fa-clock-rotate-left"></i> Histórico de Vistorias
                 </button>
             </div>
-            <div className="mt-10 text-center opacity-30 pb-8">
-                <p className="font-black text-[8px] uppercase tracking-widest">SGP AUDIT PLATINUM v2.0 — OFFLINE</p>
+            <div className="mt-8 text-center opacity-20 pb-12">
+                <p className="font-black text-[9px] uppercase tracking-[0.4em]">SGP AUDIT PLATINUM • OFFLINE CORE</p>
             </div>
         </div>
     );
@@ -462,89 +562,99 @@ const App = () => {
     // ── TELA: Histórico / Exportação ──────────────────────────────────────
     if (view === 'history') return (
         <div className="fade-in bg-slate-50 min-h-screen pb-20">
-            <Header title="Histórico" subtitle="Exportação e Registros"/>
-            <div className="max-w-md mx-auto p-6 -mt-10 space-y-4">
-                <button onClick={() => setView('fiscal')} className="w-full bg-slate-800 text-white py-4 rounded-2xl font-black uppercase text-xs mb-2 shadow-lg active:scale-95 transition">
-                    <i className="fas fa-chevron-left mr-2"></i>Voltar ao Menu
+            <Header title="Histórico" subtitle="Exportação Digital"/>
+            <div className="max-w-md mx-auto p-6 -mt-14 space-y-6">
+                <button onClick={() => setView('fiscal')} className="w-full bg-slate-900 text-white py-5 rounded-[2rem] font-black uppercase text-xs mb-2 shadow-xl active:scale-95 transition flex items-center justify-center gap-2">
+                    <i className="fas fa-chevron-left"></i>Voltar ao Menu principal
                 </button>
 
                 {/* Painel de Exportação */}
-                <div className="bg-white rounded-[2rem] p-5 shadow-md border border-slate-100">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                        <i className="fas fa-calendar-days text-emerald-500"></i> Período de Exportação
-                    </p>
-                    <div className="grid grid-cols-2 gap-3 mb-3">
-                        <div>
-                            <label className="block text-[8px] font-black text-slate-400 uppercase mb-1">Data Início</label>
-                            <input type="date" value={exportDateFrom} onChange={e=>setExportDateFrom(e.target.value)}
-                                className="w-full border-2 border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-700 focus:border-emerald-500 focus:outline-none"/>
+                <div className="radpoda-card p-6 space-y-6">
+                    <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
+                        <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600">
+                            <i className="fas fa-calendar-check"></i>
                         </div>
-                        <div>
-                            <label className="block text-[8px] font-black text-slate-400 uppercase mb-1">Hora Início</label>
-                            <input type="time" value={exportTimeFrom} onChange={e=>setExportTimeFrom(e.target.value)}
-                                className="w-full border-2 border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-700 focus:border-emerald-500 focus:outline-none"/>
-                        </div>
-                        <div>
-                            <label className="block text-[8px] font-black text-slate-400 uppercase mb-1">Data Fim</label>
-                            <input type="date" value={exportDateTo} onChange={e=>setExportDateTo(e.target.value)}
-                                className="w-full border-2 border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-700 focus:border-emerald-500 focus:outline-none"/>
-                        </div>
-                        <div>
-                            <label className="block text-[8px] font-black text-slate-400 uppercase mb-1">Hora Fim</label>
-                            <input type="time" value={exportTimeTo} onChange={e=>setExportTimeTo(e.target.value)}
-                                className="w-full border-2 border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-700 focus:border-emerald-500 focus:outline-none"/>
-                        </div>
-                    </div>
-                    <div className="bg-emerald-50 rounded-xl p-3 mb-3 border border-emerald-100">
-                        <p className="text-[9px] font-bold text-emerald-700 flex items-center gap-2">
-                            <i className="fas fa-paper-plane"></i>
-                            Será enviado para: <span className="font-black">{EMAIL_DESTINO}</span>
+                        <p className="text-[10px] font-black text-slate-800 uppercase tracking-widest">
+                            Configurar Período
                         </p>
                     </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                            <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Data Início</label>
+                            <input type="date" value={exportDateFrom} onChange={e=>setExportDateFrom(e.target.value)}
+                                className="w-full p-4 text-xs font-bold bg-slate-50 border-0 outline-none"/>
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Hora Início</label>
+                            <input type="time" value={exportTimeFrom} onChange={e=>setExportTimeFrom(e.target.value)}
+                                className="w-full p-4 text-xs font-bold bg-slate-50 border-0 outline-none"/>
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Data Fim</label>
+                            <input type="date" value={exportDateTo} onChange={e=>setExportDateTo(e.target.value)}
+                                className="w-full p-4 text-xs font-bold bg-slate-50 border-0 outline-none"/>
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Hora Fim</label>
+                            <input type="time" value={exportTimeTo} onChange={e=>setExportTimeTo(e.target.value)}
+                                className="w-full p-4 text-xs font-bold bg-slate-50 border-0 outline-none"/>
+                        </div>
+                    </div>
+
+                    <div className="bg-slate-900 rounded-2xl p-4 text-center">
+                        <p className="text-[9px] font-black text-emerald-400 uppercase tracking-widest leading-loose">
+                            Selo de Integridade Total<br/>
+                            <span className="text-white opacity-40">(JSON + EXCEL)</span>
+                        </p>
+                    </div>
+
                     <button onClick={exportFiscalZip} disabled={loading}
-                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-black px-4 py-4 rounded-2xl shadow-lg flex items-center justify-center gap-2 active:scale-95 transition disabled:opacity-50">
+                        className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-[2rem] font-black text-sm uppercase py-5 shadow-2xl shadow-emerald-500/20 btn-active border-b-8 border-emerald-800 transition-all flex justify-center items-center gap-3 disabled:opacity-50">
                         <i className={loading ? 'fas fa-spinner fa-spin' : 'fas fa-file-zipper'}></i>
-                        {loading ? 'GERANDO ZIP...' : 'GERAR E ENVIAR RAD FISCAL'}
+                        {loading ? 'PROCESSANDO...' : 'Exportar Selo Digital'}
                     </button>
+                    
                     <button onClick={limparHistorico}
-                        className="w-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-[10px] font-black px-4 py-3 rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition mt-1">
-                        <i className="fas fa-trash-can"></i> Limpar Histórico Local
+                        className="w-full text-red-500 font-black uppercase text-[9px] tracking-widest opacity-50 hover:opacity-100 transition py-2">
+                        Deletar Registros Locais
                     </button>
                 </div>
 
                 {/* Lista do Histórico */}
                 <div className="flex justify-between items-center px-2">
-                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Últimos {history.length} Registros</h3>
+                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Últimas {history.length} Auditorias</h3>
                 </div>
-                {history.length === 0 && (
-                    <div className="radpoda-card p-10 text-center">
-                        <i className="fas fa-folder-open text-slate-200 text-5xl mb-4 block"></i>
-                        <p className="text-slate-400 font-bold uppercase text-xs">Nenhum registro encontrado</p>
+                {history.length === 0 ? (
+                    <div className="radpoda-card p-12 text-center opacity-50">
+                        <i className="fas fa-box-open text-slate-300 text-5xl mb-4"></i>
+                        <p className="text-slate-400 font-black uppercase text-[10px]">Sem dados em cache</p>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {history.map((item,idx) => {
+                            const rule = GLOSA_RULES.find(r=>r.id===item.rule_id)||{};
+                            return (
+                                <div key={idx} className="radpoda-card p-5 group flex gap-4 transition hover:ring-2 hover:ring-emerald-500/20">
+                                    <div className="w-16 h-16 bg-slate-100 rounded-2xl overflow-hidden shrink-0 shadow-inner border border-slate-200">
+                                        {item.fotosBase64?.[0] ? <img src={item.fotosBase64[0]} className="w-full h-full object-cover" alt=""/> : <div className="w-full h-full flex items-center justify-center"><i className="fas fa-image text-slate-300"></i></div>}
+                                    </div>
+                                    <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+                                        <div className="flex justify-between items-start">
+                                            <span className="text-[10px] font-[900] text-slate-900 uppercase truncate">{item.categoria}</span>
+                                            <span className="text-[8px] font-black text-slate-400 shrink-0 ml-4 font-mono">{new Date(item.timestamp).toLocaleDateString('pt-BR')}</span>
+                                        </div>
+                                        <p className="text-[9px] text-slate-500 font-medium line-clamp-1 italic mb-2">"{item.observacao}"</p>
+                                        <div className="flex justify-between items-center">
+                                            <span className="status-badge bg-red-50 text-red-600 border border-red-100">Item {item.rule_id} • {rule.glosa}</span>
+                                            <i className="fas fa-shield-check text-emerald-500 text-xs"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
                 )}
-                {history.map((item,idx) => {
-                    const rule = GLOSA_RULES.find(r=>r.id===item.rule_id)||{};
-                    return (
-                        <div key={idx} className="radpoda-card p-4 flex gap-3 border-l-4 border-emerald-500">
-                            {item.fotosBase64?.[0] && (
-                                <div className="w-14 h-14 bg-slate-100 rounded-xl overflow-hidden shrink-0 border border-slate-200">
-                                    <img src={item.fotosBase64[0]} className="w-full h-full object-cover" alt=""/>
-                                </div>
-                            )}
-                            <div className="flex-1 min-w-0">
-                                <div className="flex justify-between items-start mb-1">
-                                    <span className="text-[10px] font-black text-slate-800 uppercase line-clamp-1">{item.categoria}</span>
-                                    <span className="text-[8px] font-mono text-slate-400 shrink-0 ml-1">{new Date(item.timestamp).toLocaleString('pt-BR')}</span>
-                                </div>
-                                <p className="text-[9px] text-slate-500 font-medium line-clamp-2 italic">"{item.observacao}"</p>
-                                <p className="text-[8px] text-slate-400 mt-1"><i className="fas fa-location-dot mr-1"></i>{(item.endereco||'').substring(0,30)}</p>
-                                <span className="text-[8px] font-black text-red-600 bg-red-50 px-2 py-0.5 rounded-full border border-red-100 uppercase mt-1 inline-block">
-                                    {rule.glosa} — Item {item.rule_id}
-                                </span>
-                            </div>
-                        </div>
-                    );
-                })}
             </div>
         </div>
     );
@@ -552,54 +662,56 @@ const App = () => {
     // ── TELA: Menu de Regras ──────────────────────────────────────────────
     if (view === 'rules') {
         const groups = ['CONFORMIDADE','QUALIDADE','SEGURANÇA','GESTÃO','CONTROLE'];
-        const glabels = {'CONFORMIDADE':'Parecer Favorável (Sem Glosa)','QUALIDADE':'Qualidade e Inexecução','SEGURANÇA':'Segurança e EPIs','GESTÃO':'Gestão e Documentação','CONTROLE':'Controle e Rastreabilidade'};
-        const gicons  = {'CONFORMIDADE':'fa-thumbs-up','QUALIDADE':'fa-medal','SEGURANÇA':'fa-shield-heart','GESTÃO':'fa-file-invoice','CONTROLE':'fa-satellite-dish'};
-        const gcolors = {'CONFORMIDADE':'#3b82f6','QUALIDADE':'var(--grp-qualidade)','SEGURANÇA':'var(--grp-seguranca)','GESTÃO':'var(--grp-gestao)','CONTROLE':'var(--grp-controle)'};
+        const glabels = {'CONFORMIDADE':'Parecer Favorável','QUALIDADE':'Padrão Técnico','SEGURANÇA':'Segurança / EPI','GESTÃO':'Administrativo','CONTROLE':'Rastreabilidade'};
+        const gicons  = {'CONFORMIDADE':'fa-check-double','QUALIDADE':'fa-tree-city','SEGURANÇA':'fa-user-shield','GESTÃO':'fa-file-signature','CONTROLE':'fa-satellite'};
+        const gcolors = {'CONFORMIDADE':'#3b82f6','QUALIDADE':'#10b981','SEGURANÇA':'#ef4444','GESTÃO':'#f59e0b','CONTROLE':'#6366f1'};
         return (
-            <div className="fade-in bg-slate-50 min-h-screen pb-10">
-                <Header title="Menu de Glosas" subtitle={`Fiscal: ${fiscal}`}/>
-                <div className="max-w-md mx-auto p-6 -mt-10 space-y-8">
+            <div className="fade-in bg-slate-50 min-h-screen pb-16">
+                <Header title="Auditoria" subtitle={`Fiscal: ${fiscal}`}/>
+                <div className="max-w-md mx-auto p-6 -mt-16 space-y-10">
                     {groups.map(grp => (
-                        <div key={grp} className="space-y-3">
-                            <div className="flex items-center gap-3 px-2">
-                                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs shadow-lg"
-                                     style={{backgroundColor:gcolors[grp]}}>
+                        <div key={grp} className="space-y-4">
+                            <div className="flex items-center gap-4 px-2">
+                                <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-white text-sm shadow-xl"
+                                     style={{backgroundColor:gcolors[grp], background: `linear-gradient(135deg, ${gcolors[grp]} 0%, ${gcolors[grp]}dd 100%)`}}>
                                     <i className={`fas ${gicons[grp]}`}></i>
                                 </div>
-                                <h2 className="font-black text-slate-800 uppercase tracking-tighter text-base">{glabels[grp]}</h2>
-                                {grp === 'CONFORMIDADE' && (
-                                    <span className="text-[8px] font-black bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full border border-blue-200 uppercase">SEM DESCONTO</span>
-                                )}
+                                <div>
+                                    <h2 className="font-[900] text-slate-900 uppercase tracking-tighter text-lg">{glabels[grp]}</h2>
+                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">{grp}</p>
+                                </div>
                             </div>
-                            {GLOSA_RULES.filter(r=>r.group===grp).map(rule => {
-                                const isSevere  = rule.glosa==='8.00%';
-                                const isConform = rule.id === 99;
-                                return (
-                                    <button key={rule.id} onClick={()=>{
-                            setVisitaData(nowDate()); setVisitaHora(nowTime());
-                            setGlosaFimData(nowDate()); setGlosaFimHora('18:00');
-                            setGlosaOS(''); setGlosaUnid('');
-                            setSelectedRule(rule); setView('details');
-                        }}
-                                        className={`radpoda-card p-5 text-left btn-active border-l-[6px] w-full flex flex-col gap-1 ${isSevere?'pulse-severe border-red-600 bg-red-50/30':''} ${isConform?'border-blue-500 bg-blue-50/40':''}`}
-                                        style={{borderLeftColor:isSevere?'#dc2626':isConform?'#3b82f6':gcolors[grp]}}>
-                                        <div className="flex justify-between items-start">
-                                            <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md ${
-                                                isSevere?'bg-red-600 text-white':isConform?'bg-blue-600 text-white':''
-                                            }`}
-                                                  style={(!isSevere && !isConform)?{backgroundColor:`${gcolors[grp]}22`,color:gcolors[grp]}:{}}>
-                                                {isSevere?'GRAVÍSSIMA':isConform?'ATESTE OFICIAL':(`ITEM ${rule.id}`)} • {rule.glosa}
-                                            </span>
-                                            {isSevere && <i className="fas fa-triangle-exclamation text-red-600 animate-pulse"></i>}
-                                            {isConform && <i className="fas fa-shield-check text-blue-600"></i>}
-                                        </div>
-                                        <p className="font-bold text-slate-700 text-sm leading-tight">{rule.cat}</p>
-                                        <p className="text-[10px] text-slate-400 font-medium line-clamp-1 italic">{rule.desc}</p>
-                                    </button>
-                                );
-                            })}
+                            <div className="space-y-3">
+                                {GLOSA_RULES.filter(r=>r.group===grp).map(rule => {
+                                    const isSevere  = rule.glosa==='8.00%';
+                                    const isConform = rule.id === 99;
+                                    return (
+                                        <button key={rule.id} onClick={()=>{
+                                            setVisitaData(nowDate()); setVisitaHora(nowTime());
+                                            setGlosaFimData(nowDate()); setGlosaFimHora('18:00');
+                                            setGlosaOS(''); setGlosaUnid('');
+                                            setSelectedRule(rule); setView('details');
+                                        }}
+                                            className={`radpoda-card rule-card p-6 text-left btn-active w-full flex flex-col gap-2 ${isSevere?'pulse-severe':''}`}
+                                            style={{borderLeftColor:isConform?'#3b82f6':gcolors[grp]}}>
+                                            <div className="flex justify-between items-center">
+                                                <span className={`status-badge ${
+                                                    isSevere?'bg-red-600 text-white shadow-lg shadow-red-500/20':isConform?'bg-blue-600 text-white':'bg-slate-100 text-slate-600'
+                                                }`}>
+                                                    {isSevere?'GRAVÍSSIMA':isConform?'ATESTE':(`Regra ${rule.id}`)} • {rule.glosa}
+                                                </span>
+                                                {isSevere && <i className="fas fa-triangle-exclamation text-red-600 animate-pulse"></i>}
+                                                {isConform && <i className="fas fa-shield-check text-blue-600"></i>}
+                                            </div>
+                                            <p className="font-black text-slate-800 text-base leading-tight uppercase tracking-tight">{rule.cat}</p>
+                                            <p className="text-[10px] text-slate-400 font-bold leading-relaxed">{rule.desc}</p>
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         </div>
                     ))}
+                    
                     <button onClick={()=>{loadHistory();setView('history');}}
                         className="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 py-4 rounded-2xl font-black uppercase text-xs flex items-center justify-center gap-2 transition">
                         <i className="fas fa-clock-rotate-left"></i> Histórico e Exportação
@@ -611,181 +723,141 @@ const App = () => {
 
     // ── TELA: Detalhes / Formulário da Glosa ─────────────────────────────
     if (view === 'details') return (
-        <div className="fade-in bg-slate-50 min-h-screen pb-28">
+        <div className="fade-in bg-slate-50 min-h-screen pb-32">
             <Header title="Evidências" subtitle={selectedRule.cat} showBack={true}/>
-            <div className="max-w-md mx-auto p-6 -mt-10 space-y-5">
+            <div className="max-w-md mx-auto p-6 -mt-16 space-y-6">
                 {/* Card da Regra */}
-                <div className="bg-slate-800 p-6 rounded-[2rem] text-white shadow-2xl relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-10"><i className="fas fa-gavel text-6xl rotate-12"></i></div>
-                    <p className="text-[9px] font-black opacity-50 uppercase mb-2">Item {selectedRule.id} • {selectedRule.glosa}</p>
-                    <p className="font-bold text-lg leading-tight uppercase mb-3">{selectedRule.cat}</p>
-                    <p className="text-xs opacity-70 italic leading-relaxed">{selectedRule.desc}</p>
+                <div className="bg-slate-900 p-8 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden border-b-8 border-slate-800">
+                    <div className="absolute top-0 right-0 p-6 opacity-5"><i className="fas fa-gavel text-8xl rotate-12"></i></div>
+                    <p className="text-[10px] font-black text-emerald-400 uppercase mb-3 tracking-widest">Regra {selectedRule.id} • {selectedRule.glosa}</p>
+                    <h2 className="font-[900] text-xl leading-tight uppercase mb-4 tracking-tighter">{selectedRule.cat}</h2>
+                    <p className="text-[11px] opacity-60 font-medium leading-relaxed italic">{selectedRule.desc}</p>
                 </div>
 
-                {/* Guia */}
-                <div className="bg-amber-50 border-2 border-amber-200 p-5 rounded-[2rem] relative">
-                    <div className="absolute -top-3 left-6 bg-amber-200 text-amber-800 px-3 py-1 rounded-full text-[9px] font-black uppercase flex items-center gap-2">
-                        <i className="fas fa-info-circle"></i> Como Proceder
+                {/* Guia de Auditoria */}
+                <div className="bg-amber-50 border-2 border-amber-100 p-6 rounded-[2rem] relative">
+                    <div className="absolute -top-3 left-8 bg-amber-400 text-amber-950 px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shadow-md">
+                        <i className="fas fa-bullseye-arrow mr-1"></i> Foco da Auditoria
                     </div>
-                    <p className="text-xs text-amber-900 font-bold leading-relaxed mt-1">{selectedRule.howTo}</p>
+                    <p className="text-[11px] text-amber-900 font-bold leading-relaxed">{selectedRule.howTo}</p>
                 </div>
 
-                {/* GPS — OBRIGATÓRIO */}
-                <div className={`p-4 rounded-2xl shadow-inner border-2 ${
+                {/* GPS STATUS — IMPACTO VISUAL */}
+                <div className={`p-6 rounded-[2rem] shadow-xl border-2 transition-all duration-500 ${
                     gps.status==='ok' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : gps.status==='searching' ? 'bg-amber-50 text-amber-700 border-amber-200 animate-pulse' : 'bg-red-50 text-red-700 border-red-200'
                 }`}>
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-                                gps.status==='ok' ? 'bg-emerald-200' : gps.status==='searching' ? 'bg-amber-200' : 'bg-red-200'
+                        <div className="flex items-center gap-4">
+                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-lg ${
+                                gps.status==='ok' ? 'bg-emerald-500 text-white' : gps.status==='searching' ? 'bg-amber-500 text-white' : 'bg-red-500 text-white'
                             }`}>
-                                <i className={`fas ${gps.status==='ok'?'fa-location-dot':gps.status==='searching'?'fa-satellite-dish fa-spin':'fa-location-xmark'} text-xs`}></i>
+                                <i className={`fas ${gps.status==='ok'?'fa-location-dot':gps.status==='searching'?'fa-satellite-dish fa-spin':'fa-location-xmark'} text-lg`}></i>
                             </div>
                             <div>
-                                <span className="text-[10px] font-black uppercase block">
-                                    {gps.status==='ok' ? '✔ GPS Coletado — Coordenadas Oficiais TCE' : gps.status==='searching' ? '⏳ Coletando coordenadas...' : '✘ FALHA NO GPS — Obrigatório para registro'}
+                                <span className="text-[10px] font-black uppercase block tracking-widest mb-1">
+                                    {gps.status==='ok' ? 'Coordenadas Oficiais' : gps.status==='searching' ? 'Buscando Satélites...' : 'Sinal Interrompido'}
                                 </span>
-                                <span className="text-[9px] font-mono font-bold block mt-0.5">{gps.lat ? `${gps.lat}, ${gps.lng}` : 'aguardando...'}</span>
-                                {gps.status==='error' && <span className="text-[8px] font-bold opacity-80 block mt-1">Permita localização no Chrome/Safari ou vá para área aberta.</span>}
+                                <span className="text-xs font-[900] block text-slate-900 font-mono tracking-tighter">
+                                    {gps.lat ? `${gps.lat}, ${gps.lng}` : 'LAT, LNG N/D'}
+                                </span>
                             </div>
                         </div>
                         <button onClick={requestGps}
-                            className={`shrink-0 ml-2 text-[9px] font-black uppercase px-3 py-2 rounded-xl shadow border-b-4 active:scale-95 transition ${
-                                gps.status==='ok' ? 'bg-emerald-600 border-emerald-800 text-white' : 'bg-slate-800 border-slate-900 text-white'
-                            }`}>
-                            <i className="fas fa-rotate mr-1"></i>{gps.status==='ok' ? 'Atualizar' : 'Tentar GPS'}
+                            className="w-10 h-10 rounded-xl bg-white/50 flex items-center justify-center text-slate-600 hover:bg-white transition active:scale-95 shadow-sm">
+                            <i className="fas fa-rotate"></i>
                         </button>
                     </div>
                 </div>
 
-                {/* Endereço */}
-                <div>
-                    <label className="block text-[10px] font-black text-slate-400 uppercase mb-2 ml-1 flex items-center gap-2">
-                        Localização / Endereço
-                        {enderecoLoading && <span className="text-[8px] text-emerald-500 font-bold animate-pulse normal-case"><i className="fas fa-spinner fa-spin mr-1"></i>buscando endereço...</span>}
-                    </label>
-                    <input type="text" value={endereco} onChange={e=>setEndereco(e.target.value)}
-                        className="radpoda-card w-full p-4 text-sm font-bold uppercase focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                        placeholder={enderecoLoading ? 'BUSCANDO...' : 'RUA, NÚMERO, BAIRRO...'}/>
-                    <p className="text-[8px] text-slate-400 font-bold mt-1 ml-1">
-                        <i className="fas fa-magic-wand-sparkles mr-1 text-emerald-400"></i>Preenchido automaticamente pelo GPS ao tirar a 1ª foto
-                    </p>
+                {/* Localização */}
+                <div className="space-y-2">
+                    <label className="block text-[10px] font-[900] text-slate-400 uppercase tracking-widest ml-4">Localização / Logradouro</label>
+                    <div className="relative">
+                        <i className={`fas ${enderecoLoading ? 'fa-spinner fa-spin text-emerald-500' : 'fa-map-pin text-slate-400'} absolute left-5 top-1/2 -translate-y-1/2`}></i>
+                        <input type="text" value={endereco} onChange={e=>setEndereco(e.target.value)}
+                            className="w-full p-5 pl-14 text-sm font-black uppercase bg-white border-0 shadow-sm rounded-2xl focus:ring-4 focus:ring-emerald-500/10 outline-none"
+                            placeholder="ENDEREÇO DA OCORRÊNCIA"/>
+                    </div>
                 </div>
 
-                {/* Relato */}
-                <div>
-                    <label className="block text-[10px] font-black text-slate-400 uppercase mb-2 ml-1">Relato da Irregularidade</label>
+                {/* Relato Fiscal */}
+                <div className="space-y-2">
+                    <label className="block text-[10px] font-[900] text-slate-400 uppercase tracking-widest ml-4">Relato da Irregularidade</label>
                     <textarea value={relato} onChange={e=>setRelato(e.target.value)}
-                        className="radpoda-card w-full p-5 text-sm font-bold uppercase min-h-[110px] focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                        placeholder="DESCREVA DETALHADAMENTE O QUE FOI OBSERVADO..."/>
+                        className="w-full p-6 text-sm font-black uppercase bg-white border-0 shadow-sm rounded-[2rem] focus:ring-4 focus:ring-emerald-500/10 outline-none min-h-[140px]"
+                        placeholder="DESCREVA O QUE FOI OBSERVADO EM CAMPO..."/>
                 </div>
 
-                {/* Aviso sobre timestamp */}
-                <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4 flex gap-3 items-start">
-                    <div className="w-8 h-8 bg-blue-200 rounded-full flex items-center justify-center shrink-0 mt-0.5">
-                        <i className="fas fa-clock text-blue-700 text-xs"></i>
-                    </div>
-                    <div>
-                        <p className="text-[10px] font-black text-blue-700 uppercase mb-1">⏱ As fotos devem ter timestamp visível</p>
-                        <p className="text-[9px] text-blue-600 font-bold leading-relaxed">
-                            Use o app <strong>"Timestamp Camera"</strong> ou ative a sobreposição de data/hora nas configurações da câmera.
-                            Fotos sem timestamp não têm validade como prova fiscal.
-                        </p>
-                    </div>
-                </div>
-
-                {/* Período da Glosa: Início e Fim */}
-                {selectedRule.id !== 99 && (
-                <div className="radpoda-card p-4 space-y-3">
-                    <p className="text-[10px] font-black text-slate-400 uppercase flex items-center gap-2">
-                        <i className="fas fa-calendar-clock text-emerald-500"></i>
-                        Período da Glosa
-                        <span className="text-[8px] font-bold text-slate-300 normal-case">— preenchido pelo fiscal</span>
-                    </p>
-                    {/* Início */}
-                    <div>
-                        <p className="text-[8px] font-black text-emerald-600 uppercase mb-1 flex items-center gap-1"><i className="fas fa-play"></i> Início da Irregularidade</p>
-                        <div className="grid grid-cols-2 gap-2">
-                            <div>
-                                <label className="block text-[8px] font-black text-slate-400 uppercase mb-1">Data</label>
-                                <input type="date" value={visitaData} onChange={e=>setVisitaData(e.target.value)}
-                                    className="w-full border-2 border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-700 focus:border-emerald-500 focus:outline-none"/>
-                            </div>
-                            <div>
-                                <label className="block text-[8px] font-black text-slate-400 uppercase mb-1">Hora</label>
-                                <input type="time" value={visitaHora} onChange={e=>setVisitaHora(e.target.value)}
-                                    className="w-full border-2 border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-700 focus:border-emerald-500 focus:outline-none"/>
-                            </div>
-                        </div>
-                    </div>
-                    {/* Fim */}
-                    <div>
-                        <p className="text-[8px] font-black text-red-500 uppercase mb-1 flex items-center gap-1"><i className="fas fa-stop"></i> Fim do Período de Glosa</p>
-                        <div className="grid grid-cols-2 gap-2">
-                            <div>
-                                <label className="block text-[8px] font-black text-slate-400 uppercase mb-1">Data</label>
-                                <input type="date" value={glosaFimData} onChange={e=>setGlosaFimData(e.target.value)}
-                                    className="w-full border-2 border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-700 focus:border-red-400 focus:outline-none"/>
-                            </div>
-                            <div>
-                                <label className="block text-[8px] font-black text-slate-400 uppercase mb-1">Hora</label>
-                                <input type="time" value={glosaFimHora} onChange={e=>setGlosaFimHora(e.target.value)}
-                                    className="w-full border-2 border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-700 focus:border-red-400 focus:outline-none"/>
-                            </div>
-                        </div>
-                    </div>
-                    {/* OS e Unidade */}
-                    <div className="grid grid-cols-2 gap-2">
-                        <div>
-                            <label className="block text-[8px] font-black text-slate-400 uppercase mb-1"><i className="fas fa-file-alt mr-1"></i>OS / Protocolo</label>
-                            <input type="text" value={glosaOS} onChange={e=>setGlosaOS(e.target.value)}
-                                className="w-full border-2 border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-700 uppercase focus:border-emerald-500 focus:outline-none"
-                                placeholder="666/2026"/>
-                        </div>
-                        <div>
-                            <label className="block text-[8px] font-black text-slate-400 uppercase mb-1"><i className="fas fa-hashtag mr-1"></i>ID ÁRVORE (SISTEMA) / UNID</label>
-                            <input type="text" value={glosaUnid} onChange={e=>setGlosaUnid(e.target.value)}
-                                className="w-full border-2 border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-700 uppercase focus:border-emerald-500 focus:outline-none"
-                                placeholder="Ex: 3"/>
-                        </div>
-                    </div>
-                    <p className="text-[8px] text-slate-400 font-bold italic">O período e as coordenadas GPS são usados pelo Gestor para calcular glosas sem duplicação.</p>
-                </div>
-                )}
-
-                {/* Fotos */}
-                <div>
-                    <label className="block text-[10px] font-black text-slate-400 uppercase mb-2 ml-1">Captura de Fotos (Obrigatório — mín. 1)</label>
-                    <div className="grid grid-cols-3 gap-3">
+                {/* Fotos de Evidência */}
+                <div className="space-y-3">
+                    <label className="block text-[10px] font-[900] text-slate-400 uppercase tracking-widest ml-4">Evidências Fotográficas (Mínimo 1)</label>
+                    <div className="grid grid-cols-3 gap-4">
                         {[0,1,2].map(i => (
-                            <label key={i} className="radpoda-card relative aspect-square flex flex-col items-center justify-center cursor-pointer overflow-hidden border-2 border-dashed border-slate-200 hover:border-emerald-400 transition-colors">
+                            <label key={i} className="radpoda-card relative aspect-square flex flex-col items-center justify-center cursor-pointer overflow-hidden border-2 border-dashed border-slate-300 hover:border-emerald-500 transition-all bg-white hover:shadow-2xl hover:shadow-emerald-500/10 group">
                                 {fotos[i]
                                     ? <img src={fotos[i]} className="w-full h-full object-cover" alt=""/>
-                                    : <><i className="fas fa-camera text-slate-300 text-2xl mb-1"></i>
-                                       <span className="text-[8px] font-black text-slate-400 uppercase">Foto {i+1}</span></>
+                                    : <div className="text-center">
+                                        <i className="fas fa-camera text-slate-300 text-3xl mb-2 group-hover:text-emerald-400 transition-colors"></i>
+                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">FOTO {i+1}</p>
+                                      </div>
                                 }
                                 <input type="file" accept="image/*" className="hidden"
                                     onChange={e => e.target.files[0] && processPhoto(e.target.files[0], i)}/>
                             </label>
                         ))}
                     </div>
-                    <p className="text-[8px] text-slate-400 font-bold text-center mt-2">
-                        <i className="fas fa-images mr-1"></i>Câmera ou Galeria — 1ª foto preenche data, hora e endereço automaticamente
-                    </p>
                 </div>
+
+                {/* Período e Referência */}
+                {selectedRule.id !== 99 && (
+                <div className="radpoda-card p-8 space-y-6 bg-slate-50/50">
+                    <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="block text-[8px] font-black text-emerald-600 uppercase tracking-widest"><i className="fas fa-clock mr-1"></i>Início</label>
+                            <input type="time" value={visitaHora} onChange={e=>setVisitaHora(e.target.value)}
+                                className="w-full p-4 text-xs font-black bg-white border-0 shadow-sm rounded-xl outline-none"/>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="block text-[8px] font-black text-red-500 uppercase tracking-widest"><i className="fas fa-stopwatch mr-1"></i>Fim Glosa</label>
+                            <input type="time" value={glosaFimHora} onChange={e=>setGlosaFimHora(e.target.value)}
+                                className="w-full p-4 text-xs font-black bg-white border-0 shadow-sm rounded-xl outline-none"/>
+                        </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-6 pt-2">
+                        <div className="space-y-index">
+                            <label className="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Protocolo / OS</label>
+                            <input type="text" value={glosaOS} onChange={e=>setGlosaOS(e.target.value)}
+                                className="w-full p-4 text-xs font-black bg-white border-0 shadow-sm rounded-xl outline-none uppercase"
+                                placeholder="666/2026"/>
+                        </div>
+                        <div className="space-y-index">
+                            <label className="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">ID Árvore / Unid</label>
+                            <input type="text" value={glosaUnid} onChange={e=>setGlosaUnid(e.target.value)}
+                                className="w-full p-4 text-xs font-black bg-white border-0 shadow-sm rounded-xl outline-none uppercase"
+                                placeholder="UNID 03"/>
+                        </div>
+                    </div>
+                </div>
+                )}
             </div>
 
-            {/* Botão fixo — bloqueado sem GPS */}
-            <div className="fixed bottom-6 left-6 right-6 max-w-md mx-auto">
-                {gps.status !== 'ok' && (
-                    <div className="bg-red-600 text-white text-center text-[10px] font-black uppercase py-2 px-4 rounded-2xl mb-2 shadow-lg">
-                        <i className="fas fa-location-xmark mr-1"></i> Sem GPS — ative a localização para registrar
-                    </div>
-                )}
-                <button disabled={loading || !relato.trim() || fotos.filter(Boolean).length===0 || gps.status!=='ok'} onClick={sendVistoria}
-                    className="w-full py-6 bg-emerald-600 text-white rounded-[2rem] font-black text-xl uppercase shadow-2xl btn-active disabled:bg-slate-300 flex items-center justify-center gap-3 border-b-8 border-emerald-800 transition-colors">
-                    {loading ? <><i className="fas fa-spinner fa-spin"></i> SALVANDO...</> : <><i className="fas fa-paper-plane mr-2"></i> {selectedRule.id===99 ? 'Atestar Conformidade' : 'Confirmar Glosa'}</>}
-                </button>
+            {/* BOTÃO FIXO ELITE */}
+            <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-slate-50 to-transparent pointer-events-none">
+                <div className="max-w-md mx-auto pointer-events-auto">
+                    {gps.status !== 'ok' && (
+                        <div className="bg-red-600 text-white text-center text-[10px] font-black uppercase py-2.5 px-6 rounded-2xl mb-4 shadow-2xl animate-bounce">
+                            <i className="fas fa-location-arrow mr-2"></i> AGUARDANDO SINAL GPS OBRIGATÓRIO
+                        </div>
+                    )}
+                    <button 
+                        disabled={loading || !relato.trim() || fotos.filter(Boolean).length===0 || gps.status!=='ok'} 
+                        onClick={sendVistoria}
+                        className="w-full py-6 bg-emerald-600 text-white rounded-[2.5rem] font-black text-xl uppercase shadow-2xl shadow-emerald-600/30 btn-active disabled:bg-slate-300 disabled:shadow-none flex items-center justify-center gap-4 border-b-8 border-emerald-800 transition-all hover:bg-emerald-500">
+                        {loading ? <i className="fas fa-circle-notch fa-spin"></i> : <i className="fas fa-paper-plane"></i>}
+                        {loading ? 'ENVIANDO...' : (selectedRule.id===99 ? 'Atestar Conformidade' : 'Validar Irregularidade')}
+                    </button>
+                </div>
             </div>
         </div>
     );
