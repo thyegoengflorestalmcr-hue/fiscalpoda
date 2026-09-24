@@ -30,7 +30,7 @@ jobs:
         with:
           node-version: 22
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
@@ -73,9 +73,16 @@ jobs:
           from pathlib import Path
           manifest=Path('.arbor-testlab-wrapper/android/app/src/main/AndroidManifest.xml')
           s=manifest.read_text()
-          perms='''\n    <uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n'''
-          if 'android.permission.ACCESS_FINE_LOCATION' not in s:
-              s=s.replace('<application',perms+'\n    <application',1)
+          additions=[]
+          for permission in [
+              'android.permission.CAMERA',
+              'android.permission.ACCESS_FINE_LOCATION',
+              'android.permission.ACCESS_COARSE_LOCATION',
+          ]:
+              if permission not in s:
+                  additions.append(f'    <uses-permission android:name="{permission}" />')
+          if additions:
+              s=s.replace('<application','\n'.join(additions)+'\n\n    <application',1)
           manifest.write_text(s)
 
           gradle=Path('.arbor-testlab-wrapper/android/app/build.gradle')
@@ -95,7 +102,7 @@ jobs:
           set -euo pipefail
           cd .arbor-testlab-wrapper/android
           chmod +x gradlew
-          ./gradlew --no-daemon assembleDebug assembleDebugAndroidTest
+          ./gradlew --no-daemon :app:assembleDebug :app:assembleDebugAndroidTest
           cd ../..
           APP_APK=$(find .arbor-testlab-wrapper/android/app/build/outputs/apk/debug -name '*-debug.apk' ! -name '*androidTest*' | head -n1)
           TEST_APK=$(find .arbor-testlab-wrapper/android/app/build/outputs/apk/androidTest -name '*.apk' | head -n1)
