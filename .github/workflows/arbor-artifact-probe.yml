@@ -1,0 +1,24 @@
+name: Arbor Intel · Artifact Public Probe
+
+on:
+  push:
+    branches: ['ci/arbor-intel-testlab-bridge']
+    paths: ['.github/workflows/arbor-artifact-probe.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe artifact without GitHub authentication
+        shell: bash
+        run: |
+          set -euo pipefail
+          code=$(curl -sS -L -o /tmp/artifact.zip -w '%{http_code}' 'https://api.github.com/repos/thyegoengflorestalmcr-hue/fiscalpoda/actions/artifacts/10832018712/zip')
+          echo "HTTP_STATUS=$code"
+          file /tmp/artifact.zip || true
+          stat -c 'BYTES=%s' /tmp/artifact.zip || true
+          test "$code" = "200"
+          unzip -l /tmp/artifact.zip | head -20
