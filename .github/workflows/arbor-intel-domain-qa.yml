@@ -1,0 +1,19 @@
+name: Arbor Intel · Live Domain QA
+on:
+  workflow_dispatch:
+  push:
+    branches: [ci/arbor-intel-testlab-bridge]
+    paths:
+      - 'qa-testlab/domain-contract.mjs'
+      - '.github/workflows/arbor-intel-domain-qa.yml'
+jobs:
+  domain_qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run live backend domain contract
+        run: node qa-testlab/domain-contract.mjs
