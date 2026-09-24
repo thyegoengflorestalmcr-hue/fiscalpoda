@@ -1,0 +1,38 @@
+name: Arbor Intel · Web QA
+on:
+  workflow_dispatch:
+  push:
+    branches: [ci/arbor-intel-testlab-bridge]
+    paths:
+      - 'qa-web/**'
+      - '.github/workflows/arbor-intel-web-qa.yml'
+jobs:
+  web_qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: qa-web
+    env:
+      ARBOR_BASE_URL: https://arbor-intel.vercel.app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install QA dependencies
+        run: npm install --no-audit --no-fund
+      - name: Install browser engines
+        run: npx playwright install --with-deps chromium firefox webkit
+      - name: Run Playwright product diagnostics
+        run: npx playwright test
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arbor-intel-web-qa-${{ github.sha }}
+          path: |
+            qa-web/playwright-report
+            qa-web/test-results
+          if-no-files-found: ignore
+          retention-days: 14
