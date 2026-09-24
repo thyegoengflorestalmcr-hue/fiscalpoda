@@ -9,15 +9,16 @@ on:
   workflow_dispatch:
     inputs:
       target_url:
-        description: 'Arbor Intel URL loaded by the QA WebView wrapper'
+        description: 'Arbor Intel QA URL loaded by the WebView wrapper'
         required: false
-        default: 'https://arbor-intel.vercel.app/app.html'
+        default: 'https://arbor-intel-hd6kik255-thyegos-projects.vercel.app/app.html?_vercel_share=LVQeRYVCLexOSOktHSYQf2uVA24XcRWJ'
 
 permissions:
-  contents: read
+  contents: write
 
 env:
-  TARGET_URL: ${{ inputs.target_url || 'https://arbor-intel.vercel.app/app.html' }}
+  TARGET_URL: ${{ inputs.target_url || 'https://arbor-intel-hd6kik255-thyegos-projects.vercel.app/app.html?_vercel_share=LVQeRYVCLexOSOktHSYQf2uVA24XcRWJ' }}
+  QA_APP_SHA: ba3035ecf9de9a33262b9c6e43d474e61ae52084
 
 jobs:
   build:
@@ -35,13 +36,13 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - name: Verify target URL
+      - name: Verify exact QA target URL
         shell: bash
         run: |
           set -euo pipefail
-          curl -fL --retry 3 --connect-timeout 10 "$TARGET_URL" -o /tmp/arbor-target.html
+          curl -fL --retry 3 --connect-timeout 10 -c /tmp/vercel.cookies -b /tmp/vercel.cookies "$TARGET_URL" -o /tmp/arbor-target.html
           grep -qi 'Arbor Intel' /tmp/arbor-target.html
-          printf 'TARGET_URL=%s\nSOURCE_BRIDGE_SHA=%s\n' "$TARGET_URL" "$GITHUB_SHA" | tee harness-identity.txt
+          printf 'TARGET_URL=%s\nQA_APP_SHA=%s\nSOURCE_BRIDGE_SHA=%s\n' "$TARGET_URL" "$QA_APP_SHA" "$GITHUB_SHA" | tee harness-identity.txt
 
       - name: Create isolated Capacitor Android wrapper
         shell: bash
@@ -115,7 +116,7 @@ jobs:
       - name: Upload APK artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: arbor-intel-testlab-apks-${{ github.sha }}
+          name: arbor-intel-testlab-qa-${{ env.QA_APP_SHA }}-${{ github.sha }}
           path: |
             arbor-intel-testlab-app.apk
             arbor-intel-testlab-androidTest.apk
@@ -123,3 +124,21 @@ jobs:
             harness-identity.txt
           if-no-files-found: error
           retention-days: 7
+
+      - name: Publish temporary public pre-release for Cloud Shell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG='arbor-intel-testlab-bridge'
+          gh release delete "$TAG" --cleanup-tag --yes >/dev/null 2>&1 || true
+          gh release create "$TAG" \
+            arbor-intel-testlab-app.apk \
+            arbor-intel-testlab-androidTest.apk \
+            apk-sha256.txt \
+            harness-identity.txt \
+            --target "$GITHUB_SHA" \
+            --prerelease \
+            --title 'TEMPORARY · Arbor Intel Firebase Test Lab Harness' \
+            --notes "Temporary QA bridge for ARBOR INTEL SHA ${QA_APP_SHA}. Contains only Android test harness artifacts; no private ARBOR INTEL source or credentials."
