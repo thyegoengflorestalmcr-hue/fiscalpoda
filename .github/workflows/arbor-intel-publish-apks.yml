@@ -1,0 +1,47 @@
+name: Arbor Intel · Publish Existing Test APKs
+
+on:
+  push:
+    branches: ['ci/arbor-intel-testlab-bridge']
+    paths: ['.github/workflows/arbor-intel-publish-apks.yml']
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download previously validated production-target APK artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh run download 36056474425 \
+            --repo thyegoengflorestalmcr-hue/fiscalpoda \
+            --name arbor-intel-testlab-apks-0d2ceb97cd6a70400252a5889f85e757be39215d \
+            --dir ./release-assets
+          ls -lah release-assets
+          test -f release-assets/arbor-intel-testlab-app.apk
+          test -f release-assets/arbor-intel-testlab-androidTest.apk
+      - name: Publish temporary pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG='arbor-intel-testlab-production-baseline'
+          gh release delete "$TAG" --repo thyegoengflorestalmcr-hue/fiscalpoda --cleanup-tag --yes >/dev/null 2>&1 || true
+          gh release create "$TAG" \
+            release-assets/arbor-intel-testlab-app.apk \
+            release-assets/arbor-intel-testlab-androidTest.apk \
+            release-assets/apk-sha256.txt \
+            release-assets/harness-identity.txt \
+            --repo thyegoengflorestalmcr-hue/fiscalpoda \
+            --target "$GITHUB_SHA" \
+            --prerelease \
+            --title 'TEMPORARY · Arbor Intel Firebase baseline APKs' \
+            --notes 'Temporary Android QA harness targeting https://arbor-intel.vercel.app/app.html. No private ARBOR INTEL source or Google credentials included.'
