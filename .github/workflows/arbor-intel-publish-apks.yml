@@ -45,3 +45,5 @@ jobs:
             --prerelease \
             --title 'TEMPORARY · Arbor Intel Firebase baseline APKs' \
             --notes 'Temporary Android QA harness targeting https://arbor-intel.vercel.app/app.html. No private ARBOR INTEL source or Google credentials included.'
+
+# This workflow intentionally republishes a previously validated APK pair; it does not rebuild the private app.
