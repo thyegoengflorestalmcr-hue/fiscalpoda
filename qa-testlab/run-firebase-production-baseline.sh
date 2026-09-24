@@ -63,6 +63,7 @@ PY
   fi
 
   echo "Provisionamento Firebase: ${OP_NAME}"
+  FINISHED=false
   for i in $(seq 1 30); do
     TOKEN="$(gcloud auth print-access-token)"
     curl -sS -H "Authorization: Bearer ${TOKEN}" \
@@ -74,6 +75,7 @@ print(str(j.get('done',False)).lower())
 PY
 )"
     if [ "$DONE" = "true" ]; then
+      FINISHED=true
       if python3 - <<'PY'
 import json,sys
 j=json.load(open('firebase-operation.json'))
@@ -90,6 +92,7 @@ PY
     fi
     sleep 4
   done
+  [ "$FINISHED" = true ] || { echo 'Provisionamento Firebase não concluiu no tempo esperado.'; exit 4; }
 fi
 
 printf '\n[3/7] Baixando APKs validados...\n'
@@ -124,12 +127,13 @@ gcloud firebase test android run \
   2>&1 | tee robo-testlab.log
 ROBO_EXIT=${PIPESTATUS[0]}
 
-printf '\n[6/7] Executando Espresso-Web funcional...\n'
+printf '\n[6/7] Executando Espresso-Web funcional da produção...\n'
 gcloud firebase test android run \
   --project="$PROJECT_ID" \
   --type=instrumentation \
   --app=arbor-intel-testlab-app.apk \
   --test=arbor-intel-testlab-androidTest.apk \
+  --test-targets="class br.com.arborintel.testlab.ArborIntelCriticalPathTest,class br.com.arborintel.testlab.ArborIntelWholeAppTest" \
   --device="model=${MODEL_ID},locale=pt_BR,orientation=portrait" \
   --device="model=${MODEL_ID},locale=en,orientation=landscape" \
   --timeout=12m \
@@ -149,7 +153,7 @@ grep -Eo 'https?://[^ ]+|matrix[^ ]*' robo-testlab.log espresso-testlab.log | ta
 printf '\nArquivos de log: %s\n' "$WORK"
 
 if [ "$ROBO_EXIT" -ne 0 ] || [ "$ESPRESSO_EXIT" -ne 0 ]; then
-  echo 'A matriz encontrou falha(s) ou erro de infraestrutura. Isso é um resultado útil de QA; envie o conteúdo de testlab-summary.txt para análise.'
+  echo 'A matriz encontrou falha(s) ou erro de infraestrutura. Isso é um resultado útil de QA; copie testlab-summary.txt ou a URL da matriz para o ChatGPT.'
   exit 10
 fi
 
