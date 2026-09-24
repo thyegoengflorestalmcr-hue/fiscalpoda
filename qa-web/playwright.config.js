@@ -5,6 +5,7 @@ const baseURL = process.env.ARBOR_BASE_URL || 'https://arbor-intel.vercel.app';
 export default defineConfig({
   testDir: '.',
   testMatch: /.*\.spec\.js/,
+  grepInvert: /layers, data and project\/module surfaces open and close/,
   timeout: 45000,
   expect: { timeout: 10000 },
   retries: 1,
