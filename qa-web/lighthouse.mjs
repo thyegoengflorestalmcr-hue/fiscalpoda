@@ -2,12 +2,16 @@ import fs from 'node:fs';
 import path from 'node:path';
 import lighthouse from 'lighthouse';
 import { launch } from 'chrome-launcher';
+import { chromium } from '@playwright/test';
 
 const base = process.env.ARBOR_BASE_URL || 'https://arbor-intel.vercel.app';
 const outDir = path.resolve('lighthouse-results');
 fs.mkdirSync(outDir, { recursive: true });
 
-const chrome = await launch({ chromeFlags: ['--headless=new', '--no-sandbox', '--disable-gpu'] });
+const chrome = await launch({
+  chromePath: chromium.executablePath(),
+  chromeFlags: ['--headless=new', '--no-sandbox', '--disable-gpu']
+});
 const pages = [
   ['app', `${base}/app.html`],
   ['inventory', `${base}/inventory.html`]
