@@ -3,6 +3,8 @@ import AxeBuilder from '@axe-core/playwright';
 
 const BASE = process.env.ARBOR_BASE_URL || 'https://arbor-intel.vercel.app';
 const ORIGIN = new URL(BASE).origin;
+const QA_TOKEN = 'ARBOR_INTEL_WEB_QA_TOKEN_20260924_V1';
+const QA_PROJECT_ID = '70024817-1d48-48bf-b90b-10a08a924677';
 
 function runtimeProbe(page) {
   const pageErrors = [];
@@ -59,6 +61,13 @@ async function primaryControlAudit(page, selectors) {
     };
   }), selectors);
 }
+
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(({ token, projectId }) => {
+    localStorage.setItem('arbor_intel_public_test_token_v1', token);
+    localStorage.setItem('arbor_intel_project_v2', projectId);
+  }, { token: QA_TOKEN, projectId: QA_PROJECT_ID });
+});
 
 test.describe('Urban shell · layout, usability and runtime', () => {
   test.beforeEach(async ({ page }) => {
