@@ -1,0 +1,18 @@
+name: Arbor Intel · Report V10 Endpoint
+on:
+  push:
+    branches: [ci/arbor-intel-testlab-bridge]
+    paths:
+      - 'qa-testlab/report-v10-endpoint-contract.mjs'
+      - '.github/workflows/arbor-intel-report-v10-endpoint.yml'
+  workflow_dispatch:
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node qa-testlab/report-v10-endpoint-contract.mjs
