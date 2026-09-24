@@ -1,0 +1,21 @@
+name: Arbor Intel · Public CI Bridge Smoke
+
+on:
+  push:
+    branches: ['ci/arbor-intel-testlab-bridge']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Prove public runner allocation
+        run: |
+          echo "PUBLIC_RUNNER_OK"
+          uname -a
+          node --version
+          java -version
