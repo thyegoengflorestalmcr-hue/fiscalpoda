@@ -49,3 +49,16 @@ test('live report is mobile-readable and export is non-blocking',async({page})=>
   await expect(page.locator('#pdfBtn')).toBeEnabled();
   await expect(page.locator('.reportPage').first()).toBeVisible();
 });
+
+test('production serves V13 service worker and self-healing PWA hook',async({request})=>{
+  const app=await request.get('/app.html');
+  expect(app.ok()).toBeTruthy();
+  const appText=await app.text();
+  expect(appText).toContain('/pwa-refresh-v13.js?v=20260925-1');
+  const sw=await request.get('/sw.js');
+  expect(sw.ok()).toBeTruthy();
+  const swText=await sw.text();
+  expect(swText).toContain("arbor-intel-urban-mvp-v13-2026-09-25");
+  expect(swText).toContain('/report-evidence-v13.js?v=20260925-1');
+  expect(swText).toContain('/field-photo-first-v10.js?v=20260925-1');
+});
