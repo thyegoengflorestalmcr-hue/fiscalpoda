@@ -1,0 +1,36 @@
+name: Arbor Intel · Live Production Smoke
+on:
+  push:
+    branches: [ci/arbor-intel-testlab-bridge]
+    paths:
+      - 'qa-web/live-production-smoke.spec.js'
+      - '.github/workflows/arbor-intel-live-smoke.yml'
+  workflow_dispatch:
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: qa-web
+    env:
+      ARBOR_BASE_URL: https://arbor-intel.vercel.app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Smoke production app and report
+        run: npx playwright test live-production-smoke.spec.js --project=chromium-desktop --project=chromium-mobile --workers=1 --retries=0
+      - name: Upload smoke evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arbor-intel-live-smoke-${{ github.sha }}
+          path: |
+            qa-web/playwright-report
+            qa-web/test-results
+          if-no-files-found: ignore
+          retention-days: 7
